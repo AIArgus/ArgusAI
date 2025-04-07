@@ -1,5 +1,0 @@
-com\argusai\ArgusAiApplication.class
-com\argusai\controller\ImageAnalysisController.class
-com\argusai\model\ImageAnalysis.class
-com\argusai\repository\ImageAnalysisRepository.class
-com\argusai\service\ImageAnalysisService.class
