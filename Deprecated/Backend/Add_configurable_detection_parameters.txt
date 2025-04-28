@@ -1,0 +1,37 @@
+Sprint 1:
+Zainstalował i skonfigurował YOLOv8 w projekcie
+Dodał modele YOLOv8 (yolov8l.pt i yolov8n-seg.pt)
+Przeprowadził testy detekcji na przykładowych obrazach
+Zintegrował podstawową wersję modelu YOLO z backendem
+Sprint 2:
+Zintegrował YOLOv8 z backendem API
+Skonfigurował model do detekcji obiektów na przesyłanych obrazach
+Dostosował parametry modelu do potrzeb aplikacji
+Przeprowadził testy integracji z rzeczywistymi obrazami
+Sprint 3:
+Dodał możliwość konfiguracji parametrów YOLOv8
+Zaimplementował obsługę różnych ustawień detekcji
+Dostosował model do pracy z różnymi parametrami (próg pewności, klasy obiektów)
+Zoptymalizował działanie modelu z różnymi ustawieniami
+Sprint 4:
+Zoptymalizował YOLOv8 do przetwarzania wideo
+Dostosował model do pracy z różnymi formatami wideo
+Zoptymalizował szybkość i dokładność detekcji dla wideo
+Przeprowadził testy wydajnościowe
+Sprint 5:
+Przeprowadził testy YOLOv8 na dużych plikach
+Zoptymalizował wydajność modelu dla dużych obrazów i wideo
+Dostosował model do efektywnej pracy z różnymi rozmiarami plików
+Przeprowadził testy wydajnościowe
+Sprint 6:
+Przeprowadził finalne testy YOLOv8
+Upewnił się, że wszystkie funkcje detekcji działają poprawnie
+Wprowadził ostatnie poprawki i optymalizacje modelu
+Zakończył prace nad częścią AI projektu
+Podsumowując, Igor był odpowiedzialny za całą część związaną z AI w projekcie, w szczególności:
+Integrację i konfigurację modelu YOLOv8
+Optymalizację detekcji obiektów
+Dostosowanie modelu do różnych formatów (obrazy, wideo)
+Testy wydajnościowe i jakościowe
+Finalne dopracowanie funkcjonalności AI
+Jego praca skupiała się głównie na zapewnieniu efektywnego i dokładnego działania detekcji obiektów w aplikacji, co jest kluczową funkcjonalnością całego projektu.

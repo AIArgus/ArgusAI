@@ -1,1 +1,0 @@
-Add settings validation and processing
