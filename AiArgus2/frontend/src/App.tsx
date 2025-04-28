@@ -22,6 +22,17 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import logo from '/logo/logo-argus-ai.png';
 
+const StyledLogo = styled('img')(({ theme }) => ({
+  height: '104px',
+  marginRight: '16px',
+  filter: 'drop-shadow(0 0 8px rgba(96, 165, 250, 0.2))',
+  transition: 'transform 0.2s ease-in-out',
+  padding: '8px 0',
+  '&:hover': {
+    transform: 'scale(1.05)'
+  }
+}));
+
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   marginTop: theme.spacing(3),
@@ -34,9 +45,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const GradientAppBar = styled(AppBar)(({ theme }) => ({
-  background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+  background: '#ffffff',
   marginBottom: theme.spacing(4),
+  boxShadow: '0 4px 20px rgba(96, 165, 250, 0.1)',
 }));
+
+const StyledToolbar = styled(Toolbar)({
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '16px',
+  minHeight: '120px',
+});
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -142,40 +161,25 @@ function App() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: theme.palette.background.default }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <GradientAppBar position="static">
-        <Toolbar>
-          <img src={logo} alt="Argus AI Logo" style={{ height: '40px', marginRight: '16px' }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <StyledToolbar>
+          <StyledLogo src={logo} alt="Argus AI Logo" />
+          <Typography variant="h6" component="div" sx={{ 
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            background: 'linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: '2.5rem',
+          }}>
             Argus AI
           </Typography>
-        </Toolbar>
+        </StyledToolbar>
       </GradientAppBar>
 
       <Container maxWidth="lg">
         <Box sx={{ my: 4 }}>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            gutterBottom 
-            align="center"
-            sx={{ 
-              color: theme.palette.primary.main,
-              fontWeight: 'bold',
-              mb: 2
-            }}
-          >
-            Argus AI
-          </Typography>
-          <Typography 
-            variant="subtitle1" 
-            align="center" 
-            color="text.secondary"
-            sx={{ mb: 4 }}
-          >
-            Authors: Igor Cwiertnia, Oskar Kubisztal, Jakub Laski, Tomasz Salwiczek
-          </Typography>
-
           {error && (
             <Alert 
               severity="error" 
@@ -248,6 +252,22 @@ function App() {
                   <ResultsDisplay result={result} task={task} />
                 </StyledPaper>
               )}
+
+              <Typography 
+                variant="subtitle1" 
+                align="center" 
+                color="text.secondary"
+                sx={{ 
+                  mt: 6,
+                  mb: 2,
+                  opacity: 0.8,
+                  fontSize: '0.9rem',
+                  borderTop: '1px solid rgba(0,0,0,0.1)',
+                  pt: 4
+                }}
+              >
+                Created by: Igor Cwiertnia, Oskar Kubisztal, Jakub Laski, Tomasz Salwiczek
+              </Typography>
             </>
           )}
         </Box>
