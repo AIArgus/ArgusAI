@@ -20,6 +20,7 @@ import SettingsPanel from './components/SettingsPanel';
 import ResultsDisplay from './components/ResultsDisplay';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import logo from '/logo/logo-argus-ai.png';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -144,17 +145,9 @@ function App() {
     <Box sx={{ minHeight: '100vh', bgcolor: theme.palette.background.default }}>
       <GradientAppBar position="static">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="logo"
-            sx={{ mr: 2 }}
-          >
-            <CameraAltIcon />
-          </IconButton>
+          <img src={logo} alt="Argus AI Logo" style={{ height: '40px', marginRight: '16px' }} />
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Computer Vision Application
+            Argus AI
           </Typography>
         </Toolbar>
       </GradientAppBar>
@@ -172,7 +165,7 @@ function App() {
               mb: 2
             }}
           >
-            Computer Vision Application
+            Argus AI
           </Typography>
           <Typography 
             variant="subtitle1" 
