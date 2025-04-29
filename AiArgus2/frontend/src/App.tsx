@@ -69,7 +69,7 @@ const GradientAppBar = styled(AppBar)(({ theme }) => ({
 const StyledToolbar = styled(Toolbar)({
   display: 'flex',
   justifyContent: 'space-between',
-  minHeight: '160px',
+  minHeight: '90px !important',
   padding: '0 32px',
   position: 'relative',
 });
@@ -297,11 +297,11 @@ function App() {
             </ThemeToggleWrapper>
           </StyledToolbar>
         </GradientAppBar>
-        <Box sx={{ height: '160px' }} />
+        <Box sx={{ height: '200px' }} />
 
         <Container maxWidth="lg">
           <Box sx={{ 
-            mt: 0,
+            mt: -2,
             mb: 4,
             '& .MuiPaper-root': {
               transition: 'all 0.3s ease-in-out',
