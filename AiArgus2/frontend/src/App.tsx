@@ -32,8 +32,8 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 const StyledLogo = styled('img')(({ theme }) => ({
   height: '104px',
   marginRight: '16px',
-  filter: theme.palette.mode === 'dark' 
-    ? 'drop-shadow(0 0 8px rgba(96, 165, 250, 0.3)) brightness(0) invert(1)' 
+  filter: theme.palette.mode === 'dark'
+    ? 'drop-shadow(0 0 8px rgba(96, 165, 250, 0.3))'
     : 'drop-shadow(0 0 8px rgba(96, 165, 250, 0.2))',
   transition: 'transform 0.2s ease-in-out, filter 0.3s ease-in-out',
   padding: '8px 0',
@@ -55,10 +55,15 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 const GradientAppBar = styled(AppBar)(({ theme }) => ({
   background: theme.palette.mode === 'dark' ? '#1a1c1e' : '#ffffff',
-  marginBottom: theme.spacing(4),
   boxShadow: theme.palette.mode === 'dark' 
     ? '0 4px 20px rgba(0, 0, 0, 0.3)' 
     : '0 4px 20px rgba(96, 165, 250, 0.1)',
+  transition: 'all 0.3s ease-in-out',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: theme.zIndex.appBar,
 }));
 
 const StyledToolbar = styled(Toolbar)({
@@ -209,8 +214,12 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <GradientAppBar position="static">
+      <Box sx={{ 
+        minHeight: '100vh', 
+        bgcolor: 'background.default',
+        transition: 'all 0.3s ease-in-out',
+      }}>
+        <GradientAppBar>
           <StyledToolbar>
             <Box sx={{ width: '200px' }} />
             <LogoWrapper>
@@ -222,21 +231,29 @@ function App() {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 fontSize: '2.5rem',
+                transition: 'all 0.3s ease-in-out',
               }}>
                 Argus AI
               </Typography>
             </LogoWrapper>
             <ThemeToggleWrapper>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                transition: 'all 0.3s ease-in-out',
+              }}>
                 <Brightness7Icon sx={{ 
                   color: theme.palette.mode === 'dark' ? 'grey.500' : '#fbbf24',
-                  fontSize: '1.5rem'
+                  fontSize: '1.5rem',
+                  transition: 'all 0.3s ease-in-out',
                 }} />
                 <Typography
                   sx={{
                     color: theme.palette.mode === 'dark' ? 'grey.500' : 'grey.700',
                     fontSize: '0.9rem',
                     fontWeight: 500,
+                    transition: 'all 0.3s ease-in-out',
                   }}
                 >
                   Light
@@ -250,18 +267,28 @@ function App() {
                   '& .MuiSwitch-switchBase.Mui-checked': {
                     color: '#fff',
                   },
+                  '& .MuiSwitch-switchBase': {
+                    transition: 'all 0.3s ease-in-out',
+                  },
                 }}
               />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                transition: 'all 0.3s ease-in-out',
+              }}>
                 <Brightness4Icon sx={{ 
                   color: theme.palette.mode === 'dark' ? '#fff' : 'grey.500',
-                  fontSize: '1.5rem'
+                  fontSize: '1.5rem',
+                  transition: 'all 0.3s ease-in-out',
                 }} />
                 <Typography
                   sx={{
                     color: theme.palette.mode === 'dark' ? '#fff' : 'grey.500',
                     fontSize: '0.9rem',
                     fontWeight: 500,
+                    transition: 'all 0.3s ease-in-out',
                   }}
                 >
                   Dark
@@ -270,9 +297,16 @@ function App() {
             </ThemeToggleWrapper>
           </StyledToolbar>
         </GradientAppBar>
+        <Box sx={{ height: '160px' }} />
 
         <Container maxWidth="lg">
-          <Box sx={{ my: 4 }}>
+          <Box sx={{ 
+            mt: 0,
+            mb: 4,
+            '& .MuiPaper-root': {
+              transition: 'all 0.3s ease-in-out',
+            },
+          }}>
             {error && (
               <Alert 
                 severity="error" 
@@ -289,7 +323,7 @@ function App() {
               value={task}
               onChange={handleTaskChange}
               centered
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }}
             >
               <Tab 
                 value="detection" 
