@@ -1,4 +1,4 @@
-# Computer Vision Application
+# Argus AI
 
 This application provides object detection and segmentation capabilities using YOLOv8 models.
 
