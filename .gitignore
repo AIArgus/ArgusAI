@@ -1,0 +1,6 @@
+# Ignoruj pliki tymczasowe Pythona
+__pycache__/
+*.pyc
+
+# Ignoruj środowiska wirtualne
+venv/
