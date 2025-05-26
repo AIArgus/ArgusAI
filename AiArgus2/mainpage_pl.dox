@@ -1,0 +1,42 @@
+/**
+ * @mainpage ArgusAI - System Wykrywania i Segmentacji Obiektów
+ *
+ * @section intro_sec Wprowadzenie
+ * ArgusAI to zaawansowany system wykrywania i segmentacji obiektów oparty na sztucznej inteligencji,
+ * zaprojektowany do analizy obrazów w czasie rzeczywistym. System wykorzystuje najnowsze osiągnięcia
+ * w dziedzinie uczenia głębokiego do zapewnienia precyzyjnej detekcji i segmentacji obiektów.
+ *
+ * @section features_sec Główne Funkcje
+ * - Wykrywanie obiektów w czasie rzeczywistym
+ * - Segmentacja semantyczna
+ * - Obsługa wielu modeli AI
+ * - Interfejs użytkownika oparty na React
+ * - API RESTful
+ * - Obsługa wielu języków (polski i angielski)
+ *
+ * @section arch_sec Architektura
+ * System składa się z następujących głównych komponentów:
+ * - @ref backend "Backend" - Serwer API i logika przetwarzania
+ * - @ref frontend "Frontend" - Interfejs użytkownika
+ * - @ref models "Modele AI" - Wstępnie wytrenowane modele
+ *
+ * @section install_sec Instalacja
+ * Szczegółowe instrukcje instalacji znajdują się w sekcji @ref installation "Instalacja".
+ *
+ * @section usage_sec Użycie
+ * Aby rozpocząć pracę z systemem:
+ * 1. Zainstaluj wszystkie zależności
+ * 2. Uruchom serwer backend
+ * 3. Uruchom aplikację frontend
+ * 4. Otwórz przeglądarkę i przejdź do http://localhost:3000
+ *
+ * @section api_sec Dokumentacja API
+ * Pełna dokumentacja API jest dostępna w sekcji @ref api "Dokumentacja API".
+ *
+ * @section contrib_sec Współpraca
+ * Zachęcamy do współpracy przy rozwoju projektu. Prosimy o zapoznanie się z naszymi
+ * wytycznymi dotyczącymi współpracy przed przesłaniem pull requesta.
+ *
+ * @section license_sec Licencja
+ * Projekt jest udostępniany na licencji MIT. Szczegóły znajdują się w pliku LICENSE.
+ */ 

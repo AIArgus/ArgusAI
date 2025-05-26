@@ -1,0 +1,99 @@
+/**
+ * @page installation Installation Guide
+ *
+ * @section install_prereq Prerequisites
+ * Before installing ArgusAI, ensure you have the following prerequisites:
+ * - Python 3.8 or higher
+ * - Node.js 16 or higher
+ * - Git
+ * - CUDA-capable GPU (recommended)
+ *
+ * @section install_backend Backend Installation
+ * 1. Clone the repository:
+ *    @code{.bash}
+ *    git clone https://github.com/yourusername/ArgusAI.git
+ *    cd ArgusAI
+ *    @endcode
+ *
+ * 2. Create and activate a virtual environment:
+ *    @code{.bash}
+ *    python -m venv venv
+ *    source venv/bin/activate  # On Windows: venv\Scripts\activate
+ *    @endcode
+ *
+ * 3. Install backend dependencies:
+ *    @code{.bash}
+ *    cd backend
+ *    pip install -r requirements.txt
+ *    @endcode
+ *
+ * 4. Download YOLO models:
+ *    - yolov8n.pt
+ *    - yolov8n-seg.pt
+ *    - yolov8l.pt
+ *
+ * @section install_frontend Frontend Installation
+ * 1. Navigate to the frontend directory:
+ *    @code{.bash}
+ *    cd ../frontend
+ *    @endcode
+ *
+ * 2. Install frontend dependencies:
+ *    @code{.bash}
+ *    npm install
+ *    @endcode
+ *
+ * @section install_config Configuration
+ * 1. Backend configuration:
+ *    - Copy `.env.example` to `.env`
+ *    - Update configuration values as needed
+ *
+ * 2. Frontend configuration:
+ *    - Copy `.env.example` to `.env`
+ *    - Update API endpoints and other settings
+ *
+ * @section install_run Running the Application
+ * 1. Start the backend server:
+ *    @code{.bash}
+ *    cd backend
+ *    uvicorn main:app --reload
+ *    @endcode
+ *
+ * 2. Start the frontend development server:
+ *    @code{.bash}
+ *    cd frontend
+ *    npm run dev
+ *    @endcode
+ *
+ * 3. Access the application:
+ *    - Frontend: http://localhost:5173
+ *    - Backend API: http://localhost:8000
+ *    - API Documentation: http://localhost:8000/docs
+ *
+ * @section install_trouble Troubleshooting
+ * Common issues and solutions:
+ * - CUDA errors: Ensure CUDA is properly installed and compatible with PyTorch
+ * - Port conflicts: Change ports in configuration files
+ * - Model loading errors: Verify model files are in the correct location
+ * - Dependencies issues: Update pip and npm to latest versions
+ *
+ * @section install_update Updating
+ * To update the application:
+ * 1. Pull latest changes:
+ *    @code{.bash}
+ *    git pull origin main
+ *    @endcode
+ *
+ * 2. Update dependencies:
+ *    @code{.bash}
+ *    # Backend
+ *    cd backend
+ *    pip install -r requirements.txt
+ *
+ *    # Frontend
+ *    cd ../frontend
+ *    npm install
+ *    @endcode
+ *
+ * 3. Restart the application
+ */ 

@@ -1,0 +1,61 @@
+/* Language Switcher Styles */
+.language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.language-switcher select {
+    padding: 5px 10px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+.language-switcher select:hover {
+    background: #f5f5f5;
+}
+
+/* Content language styles */
+[lang="en"] {
+    display: none;
+}
+
+[lang="pl"] {
+    display: none;
+}
+
+/* Show content based on selected language */
+html[lang="en"] [lang="en"] {
+    display: block;
+}
+
+html[lang="pl"] [lang="pl"] {
+    display: block;
+}
+
+/* Inline elements */
+html[lang="en"] [lang="en"] {
+    display: inline;
+}
+
+html[lang="pl"] [lang="pl"] {
+    display: inline;
+}
+
+/* Preserve block elements */
+html[lang="en"] [lang="en"].block {
+    display: block;
+}
+
+html[lang="pl"] [lang="pl"].block {
+    display: block;
+} 

@@ -1,0 +1,42 @@
+/**
+ * @mainpage Dokumentacja ArgusAI
+ *
+ * @section intro_sec Wprowadzenie
+ * ArgusAI to zaawansowany system wykrywania i segmentacji obiektów oparty na sztucznej inteligencji, który zapewnia analizę w czasie rzeczywistym obrazów i strumieni wideo. System wykorzystuje najnowocześniejsze modele YOLO (You Only Look Once) do zapewnienia wysokowydajnego wykrywania obiektów i segmentacji instancji.
+ *
+ * @section features_sec Kluczowe Funkcje
+ * - Wykrywanie obiektów w czasie rzeczywistym przy użyciu YOLOv8
+ * - Możliwości segmentacji instancji
+ * - Wsparcie dla wielu klas obiektów
+ * - Konfigurowalne parametry wykrywania
+ * - Interfejs REST API
+ * - Nowoczesny interfejs użytkownika oparty na przeglądarce
+ *
+ * @section arch_sec Architektura
+ * System jest zbudowany w nowoczesnej architekturze klient-serwer:
+ * - @ref backend "Backend": Serwer REST API oparty na FastAPI
+ * - @ref frontend "Frontend": Interfejs webowy oparty na React
+ *
+ * @section modules_sec Główne Moduły
+ * - @ref detection "Wykrywanie Obiektów": Podstawowa funkcjonalność wykrywania
+ * - @ref segmentation "Segmentacja Instancji": Możliwości segmentacji
+ * - @ref api "Interfejs API": Endpointy REST API
+ * - @ref ui "Interfejs Użytkownika": Komponenty interfejsu webowego
+ *
+ * @section usage_sec Użycie
+ * System może być używany przez:
+ * 1. Interfejs Webowy: Dostęp do przyjaznego interfejsu użytkownika pod adresem http://localhost:5173
+ * 2. API: Bezpośrednie wywołania endpointów backendu
+ *
+ * @section setup_sec Instalacja i Konfiguracja
+ * Zobacz @ref installation "Przewodnik Instalacji" dla szczegółowych instrukcji konfiguracji.
+ *
+ * @section api_sec Dokumentacja API
+ * Pełna dokumentacja API jest dostępna w sekcji @ref api "Referencja API".
+ *
+ * @section examples_sec Przykłady
+ * Sprawdź sekcję @ref examples "Przykłady" dla przykładów użycia i fragmentów kodu.
+ *
+ * @section license_sec Licencja
+ * Ten projekt jest objęty licencją MIT - szczegóły znajdują się w pliku LICENSE.
+ */ 

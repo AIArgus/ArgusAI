@@ -1,0 +1,58 @@
+/**
+ * @defgroup backend Backend
+ * @{
+ *
+ * @brief Backend implementation of the ArgusAI system
+ *
+ * The backend module provides the core functionality for object detection and segmentation,
+ * implemented as a FastAPI-based REST API server.
+ *
+ * @section backend_components Components
+ *
+ * @subsection detection Detection Module
+ * The detection module handles object detection using YOLOv8 models:
+ * - Real-time object detection
+ * - Configurable detection parameters
+ * - Support for multiple object classes
+ *
+ * @subsection segmentation Segmentation Module
+ * The segmentation module provides instance segmentation capabilities:
+ * - Instance segmentation using YOLOv8-seg
+ * - Mask generation and visualization
+ * - Class-specific segmentation
+ *
+ * @subsection api API Endpoints
+ * The API module exposes REST endpoints for:
+ * - Image upload and processing
+ * - Detection and segmentation requests
+ * - Configuration management
+ * - Status monitoring
+ *
+ * @section backend_usage Usage
+ * The backend can be accessed through:
+ * 1. REST API endpoints
+ * 2. WebSocket connections for real-time updates
+ * 3. Direct Python imports for integration
+ *
+ * @section backend_config Configuration
+ * The backend can be configured through:
+ * - Environment variables
+ * - Configuration files
+ * - API endpoints
+ *
+ * @section backend_models Models
+ * The system uses the following YOLO models:
+ * - yolov8n.pt: Lightweight detection model
+ * - yolov8n-seg.pt: Lightweight segmentation model
+ * - yolov8l.pt: Large detection model
+ *
+ * @section backend_dependencies Dependencies
+ * Key dependencies include:
+ * - FastAPI
+ * - Ultralytics YOLO
+ * - OpenCV
+ * - NumPy
+ * - PyTorch
+ *
+ * @}
+ */ 

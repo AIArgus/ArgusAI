@@ -1,0 +1,159 @@
+\chapter{API Reference }
+\hypertarget{api}{}\label{api}\index{API Reference@{API Reference}}
+\hypertarget{api_api_overview}{}\doxysection{\texorpdfstring{Overview}{Overview}}\label{api_api_overview}
+The Argus\+AI API provides RESTful endpoints for object detection and segmentation. All endpoints are prefixed with {\ttfamily /api/}.\hypertarget{api_api_auth}{}\doxysection{\texorpdfstring{Authentication}{Authentication}}\label{api_api_auth}
+Currently, the API does not require authentication. All endpoints are publicly accessible.\hypertarget{api_api_endpoints}{}\doxysection{\texorpdfstring{Endpoints}{Endpoints}}\label{api_api_endpoints}
+\hypertarget{api_api_get_class_names}{}\doxysubsection{\texorpdfstring{GET /api/class-\/names}{GET /api/class-\/names}}\label{api_api_get_class_names}
+Returns the list of available object classes for detection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Response:}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}class\_names"{}:\ [}
+\DoxyCodeLine{\ \ \ \ "{}person"{},\ "{}bicycle"{},\ "{}car"{},\ "{}motorcycle"{},\ "{}airplane"{},}
+\DoxyCodeLine{\ \ \ \ //\ ...\ more\ classes\ ...}
+\DoxyCodeLine{\ \ ]}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{api_api_detect}{}\doxysubsection{\texorpdfstring{POST /api/detect}{POST /api/detect}}\label{api_api_detect}
+Performs object detection or segmentation on an uploaded image.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{Request:}
+\DoxyCodeLine{Content-\/Type:\ multipart/form-\/data}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}file"{}:\ <image\_file>,}
+\DoxyCodeLine{\ \ "{}task"{}:\ "{}detection"{}\ |\ "{}segmentation"{},}
+\DoxyCodeLine{\ \ "{}selected\_classes"{}:\ ["{}person"{},\ "{}car"{},\ ...],}
+\DoxyCodeLine{\ \ "{}threshold"{}:\ 0.25,}
+\DoxyCodeLine{\ \ "{}show\_labels"{}:\ true,}
+\DoxyCodeLine{\ \ "{}show\_confidence"{}:\ true,}
+\DoxyCodeLine{\ \ "{}color"{}:\ "{}\#B9282B"{},}
+\DoxyCodeLine{\ \ "{}thickness"{}:\ 2}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{Response:}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}image"{}:\ "{}<base64\_encoded\_image>"{},}
+\DoxyCodeLine{\ \ "{}format"{}:\ "{}png"{},}
+\DoxyCodeLine{\ \ "{}message"{}:\ "{}Detection\ completed\ successfully"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{api_api_parameters}{}\doxysection{\texorpdfstring{Parameters}{Parameters}}\label{api_api_parameters}
+\hypertarget{api_api_file}{}\doxysubsection{\texorpdfstring{File}{File}}\label{api_api_file}
+
+\begin{DoxyItemize}
+\item Type\+: File upload
+\item Required\+: Yes
+\item Description\+: Image file to process
+\item Supported formats\+: JPG, PNG, JPEG
+\end{DoxyItemize}\hypertarget{api_api_task}{}\doxysubsection{\texorpdfstring{Task}{Task}}\label{api_api_task}
+
+\begin{DoxyItemize}
+\item Type\+: String
+\item Required\+: Yes
+\item Values\+: "{}detection"{} \texorpdfstring{$\vert$}{|} "{}segmentation"{}
+\item Description\+: Type of processing to perform
+\end{DoxyItemize}\hypertarget{api_api_selected_classes}{}\doxysubsection{\texorpdfstring{Selected Classes}{Selected Classes}}\label{api_api_selected_classes}
+
+\begin{DoxyItemize}
+\item Type\+: Array of strings
+\item Required\+: No
+\item Description\+: List of object classes to detect
+\item Default\+: All classes
+\end{DoxyItemize}\hypertarget{api_api_threshold}{}\doxysubsection{\texorpdfstring{Threshold}{Threshold}}\label{api_api_threshold}
+
+\begin{DoxyItemize}
+\item Type\+: Float
+\item Required\+: No
+\item Range\+: 0.\+0 to 1.\+0
+\item Default\+: 0.\+25
+\item Description\+: Confidence threshold for detections
+\end{DoxyItemize}\hypertarget{api_api_show_labels}{}\doxysubsection{\texorpdfstring{Show Labels}{Show Labels}}\label{api_api_show_labels}
+
+\begin{DoxyItemize}
+\item Type\+: Boolean
+\item Required\+: No
+\item Default\+: true
+\item Description\+: Whether to show class labels on the output image
+\end{DoxyItemize}\hypertarget{api_api_show_confidence}{}\doxysubsection{\texorpdfstring{Show Confidence}{Show Confidence}}\label{api_api_show_confidence}
+
+\begin{DoxyItemize}
+\item Type\+: Boolean
+\item Required\+: No
+\item Default\+: true
+\item Description\+: Whether to show confidence scores on the output image
+\end{DoxyItemize}\hypertarget{api_api_color}{}\doxysubsection{\texorpdfstring{Color}{Color}}\label{api_api_color}
+
+\begin{DoxyItemize}
+\item Type\+: String
+\item Required\+: No
+\item Default\+: "{}\#\+B9282\+B"{}
+\item Description\+: Color for bounding boxes and labels (HEX format)
+\end{DoxyItemize}\hypertarget{api_api_thickness}{}\doxysubsection{\texorpdfstring{Thickness}{Thickness}}\label{api_api_thickness}
+
+\begin{DoxyItemize}
+\item Type\+: Integer
+\item Required\+: No
+\item Default\+: 2
+\item Description\+: Thickness of bounding boxes in pixels
+\end{DoxyItemize}\hypertarget{api_api_errors}{}\doxysection{\texorpdfstring{Error Responses}{Error Responses}}\label{api_api_errors}
+All endpoints may return the following error responses\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}error"{}:\ "{}Error\ message\ description"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Common error codes\+:
+\begin{DoxyItemize}
+\item 400\+: Bad Request -\/ Invalid parameters
+\item 413\+: Payload Too Large -\/ Image file too large
+\item 415\+: Unsupported Media Type -\/ Invalid file format
+\item 500\+: Internal Server Error -\/ Server-\/side processing error
+\end{DoxyItemize}\hypertarget{api_api_examples}{}\doxysection{\texorpdfstring{Examples}{Examples}}\label{api_api_examples}
+\hypertarget{api_api_example_curl}{}\doxysubsection{\texorpdfstring{c\+URL Example}{c\+URL Example}}\label{api_api_example_curl}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{curl\ -\/X\ POST\ "{}http://localhost:8000/api/detect"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/H\ "{}Content-\/Type:\ multipart/form-\/data"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}file=@image.jpg"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}task=detection"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}selected\_classes=[\(\backslash\)"{}person\(\backslash\)"{},\(\backslash\)"{}car\(\backslash\)"{}]"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}threshold=0.25"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}show\_labels=true"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}show\_confidence=true"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}color=\#B9282B"{}\ \(\backslash\)}
+\DoxyCodeLine{\ \ -\/F\ "{}thickness=2"{}}
+
+\end{DoxyCode}
+\hypertarget{api_api_example_python}{}\doxysubsection{\texorpdfstring{Python Example}{Python Example}}\label{api_api_example_python}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{import}\ requests}
+\DoxyCodeLine{}
+\DoxyCodeLine{url\ =\ \textcolor{stringliteral}{"{}http://localhost:8000/api/detect"{}}}
+\DoxyCodeLine{files\ =\ \{\textcolor{stringliteral}{"{}file"{}}:\ open(\textcolor{stringliteral}{"{}image.jpg"{}},\ \textcolor{stringliteral}{"{}rb"{}})\}}
+\DoxyCodeLine{data\ =\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}task"{}}:\ \textcolor{stringliteral}{"{}detection"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}selected\_classes"{}}:\ [\textcolor{stringliteral}{"{}person"{}},\ \textcolor{stringliteral}{"{}car"{}}],}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}threshold"{}}:\ 0.25,}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}show\_labels"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}show\_confidence"{}}:\ \textcolor{keyword}{True},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}color"{}}:\ \textcolor{stringliteral}{"{}\#B9282B"{}},}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}thickness"{}}:\ 2}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{response\ =\ requests.post(url,\ files=files,\ data=data)}
+\DoxyCodeLine{result\ =\ response.json()}
+
+\end{DoxyCode}
+ 

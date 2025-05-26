@@ -1,0 +1,42 @@
+/**
+ * @mainpage ArgusAI Documentation
+ *
+ * @section intro_sec Introduction
+ * ArgusAI is an advanced AI-powered object detection and segmentation system that provides real-time analysis of images and video streams. The system leverages state-of-the-art YOLO (You Only Look Once) models to deliver high-performance object detection and instance segmentation capabilities.
+ *
+ * @section features_sec Key Features
+ * - Real-time object detection using YOLOv8
+ * - Instance segmentation capabilities
+ * - Support for multiple object classes
+ * - Configurable detection parameters
+ * - RESTful API interface
+ * - Modern web-based user interface
+ *
+ * @section arch_sec Architecture
+ * The system is built with a modern client-server architecture:
+ * - @ref backend "Backend": FastAPI-based REST API server
+ * - @ref frontend "Frontend": React-based web interface
+ *
+ * @section modules_sec Core Modules
+ * - @ref detection "Object Detection": Core detection functionality
+ * - @ref segmentation "Instance Segmentation": Segmentation capabilities
+ * - @ref api "API Interface": REST API endpoints
+ * - @ref ui "User Interface": Web-based UI components
+ *
+ * @section usage_sec Usage
+ * The system can be used through:
+ * 1. Web Interface: Access the user-friendly web interface at http://localhost:5173
+ * 2. API: Make direct API calls to the backend endpoints
+ *
+ * @section setup_sec Setup and Installation
+ * See the @ref installation "Installation Guide" for detailed setup instructions.
+ *
+ * @section api_sec API Documentation
+ * The complete API documentation is available in the @ref api "API Reference" section.
+ *
+ * @section examples_sec Examples
+ * Check the @ref examples "Examples" section for usage examples and code snippets.
+ *
+ * @section license_sec License
+ * This project is licensed under the MIT License - see the LICENSE file for details.
+ */ 

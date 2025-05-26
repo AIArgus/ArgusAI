@@ -1,0 +1,56 @@
+\doxysection{Backend }
+\hypertarget{group__backend}{}\label{group__backend}\index{Backend@{Backend}}
+
+
+Backend implementation of the Argus\+AI system.  
+
+
+Backend implementation of the Argus\+AI system. 
+
+The backend module provides the core functionality for object detection and segmentation, implemented as a Fast\+API-\/based REST API server.\hypertarget{group__backend_backend_components}{}\doxysubsection{\texorpdfstring{Components}{Components}}\label{group__backend_backend_components}
+\hypertarget{group__backend_detection}{}\doxysubsubsection{\texorpdfstring{Detection Module}{Detection Module}}\label{group__backend_detection}
+The detection module handles object detection using YOLOv8 models\+:
+\begin{DoxyItemize}
+\item Real-\/time object detection
+\item Configurable detection parameters
+\item Support for multiple object classes
+\end{DoxyItemize}\hypertarget{group__backend_segmentation}{}\doxysubsubsection{\texorpdfstring{Segmentation Module}{Segmentation Module}}\label{group__backend_segmentation}
+The segmentation module provides instance segmentation capabilities\+:
+\begin{DoxyItemize}
+\item Instance segmentation using YOLOv8-\/seg
+\item Mask generation and visualization
+\item Class-\/specific segmentation
+\end{DoxyItemize}\hypertarget{group__frontend_api}{}\doxysubsubsection{\texorpdfstring{API Endpoints}{API Endpoints}}\label{group__frontend_api}
+The API module exposes REST endpoints for\+:
+\begin{DoxyItemize}
+\item Image upload and processing
+\item Detection and segmentation requests
+\item Configuration management
+\item Status monitoring
+\end{DoxyItemize}\hypertarget{group__backend_backend_usage}{}\doxysubsection{\texorpdfstring{Usage}{Usage}}\label{group__backend_backend_usage}
+The backend can be accessed through\+:
+\begin{DoxyEnumerate}
+\item REST API endpoints
+\item Web\+Socket connections for real-\/time updates
+\item Direct Python imports for integration
+\end{DoxyEnumerate}\hypertarget{group__backend_backend_config}{}\doxysubsection{\texorpdfstring{Configuration}{Configuration}}\label{group__backend_backend_config}
+The backend can be configured through\+:
+\begin{DoxyItemize}
+\item Environment variables
+\item Configuration files
+\item API endpoints
+\end{DoxyItemize}\hypertarget{group__backend_backend_models}{}\doxysubsection{\texorpdfstring{Models}{Models}}\label{group__backend_backend_models}
+The system uses the following YOLO models\+:
+\begin{DoxyItemize}
+\item yolov8n.\+pt\+: Lightweight detection model
+\item yolov8n-\/seg.\+pt\+: Lightweight segmentation model
+\item yolov8l.\+pt\+: Large detection model
+\end{DoxyItemize}\hypertarget{group__backend_backend_dependencies}{}\doxysubsection{\texorpdfstring{Dependencies}{Dependencies}}\label{group__backend_backend_dependencies}
+Key dependencies include\+:
+\begin{DoxyItemize}
+\item Fast\+API
+\item Ultralytics YOLO
+\item Open\+CV
+\item Num\+Py
+\item Py\+Torch 
+\end{DoxyItemize}

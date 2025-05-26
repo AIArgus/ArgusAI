@@ -1,0 +1,55 @@
+/* Language Switcher Styles */
+.language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 5px;
+}
+
+.language-switcher select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.language-switcher select:hover {
+    border-color: #999;
+}
+
+.language-switcher select:focus {
+    border-color: #4a90e2;
+}
+
+/* Hide content based on language */
+[lang="pl"] {
+    display: none;
+}
+
+[lang="en"] {
+    display: block;
+}
+
+/* Show content based on selected language */
+html[lang="pl"] [lang="pl"] {
+    display: block;
+}
+
+html[lang="pl"] [lang="en"] {
+    display: none;
+}
+
+html[lang="en"] [lang="en"] {
+    display: block;
+}
+
+html[lang="en"] [lang="pl"] {
+    display: none;
+} 

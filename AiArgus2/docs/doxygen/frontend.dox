@@ -1,0 +1,61 @@
+/**
+ * @defgroup frontend Frontend
+ * @{
+ *
+ * @brief Frontend implementation of the ArgusAI system
+ *
+ * The frontend module provides a modern, responsive web interface for interacting with
+ * the ArgusAI system, built using React and TypeScript.
+ *
+ * @section frontend_components Components
+ *
+ * @subsection ui UI Components
+ * The UI module contains reusable components:
+ * - Image upload and preview
+ * - Detection results visualization
+ * - Configuration controls
+ * - Status indicators
+ *
+ * @subsection api API Integration
+ * The API integration module handles:
+ * - REST API communication
+ * - WebSocket connections
+ * - Error handling
+ * - Response processing
+ *
+ * @subsection state State Management
+ * The state management module provides:
+ * - Application state handling
+ * - Configuration persistence
+ * - User preferences
+ * - Session management
+ *
+ * @section frontend_usage Usage
+ * The frontend can be accessed through:
+ * 1. Web browser at http://localhost:5173
+ * 2. Mobile-responsive interface
+ * 3. Progressive Web App (PWA) capabilities
+ *
+ * @section frontend_config Configuration
+ * The frontend can be configured through:
+ * - Environment variables
+ * - Configuration files
+ * - User interface settings
+ *
+ * @section frontend_dependencies Dependencies
+ * Key dependencies include:
+ * - React
+ * - TypeScript
+ * - Vite
+ * - Material-UI
+ * - Axios
+ *
+ * @section frontend_build Build Process
+ * The frontend build process includes:
+ * - TypeScript compilation
+ * - Asset optimization
+ * - Code splitting
+ * - Production builds
+ *
+ * @}
+ */ 

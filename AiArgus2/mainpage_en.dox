@@ -1,0 +1,42 @@
+/**
+ * @mainpage ArgusAI - Object Detection and Segmentation System
+ *
+ * @section intro_sec Introduction
+ * ArgusAI is an advanced AI-powered object detection and segmentation system
+ * designed for real-time image analysis. The system leverages state-of-the-art
+ * deep learning techniques to provide precise object detection and segmentation.
+ *
+ * @section features_sec Key Features
+ * - Real-time object detection
+ * - Semantic segmentation
+ * - Multiple AI model support
+ * - React-based user interface
+ * - RESTful API
+ * - Multi-language support (English and Polish)
+ *
+ * @section arch_sec Architecture
+ * The system consists of the following main components:
+ * - @ref backend "Backend" - API server and processing logic
+ * - @ref frontend "Frontend" - User interface
+ * - @ref models "AI Models" - Pre-trained models
+ *
+ * @section install_sec Installation
+ * Detailed installation instructions can be found in the @ref installation "Installation" section.
+ *
+ * @section usage_sec Usage
+ * To get started with the system:
+ * 1. Install all dependencies
+ * 2. Start the backend server
+ * 3. Launch the frontend application
+ * 4. Open your browser and navigate to http://localhost:3000
+ *
+ * @section api_sec API Documentation
+ * Complete API documentation is available in the @ref api "API Documentation" section.
+ *
+ * @section contrib_sec Contributing
+ * We welcome contributions to the project. Please review our contribution
+ * guidelines before submitting a pull request.
+ *
+ * @section license_sec License
+ * The project is released under the MIT license. Details can be found in the LICENSE file.
+ */ 

@@ -92,7 +92,7 @@ async def detect_objects(
         print(f"Task type: {task}")
         
         if selected_classes is None:
-            selected_classes = names_list
+            selected_classes = []
         else:
             selected_classes = json.loads(selected_classes)
 
