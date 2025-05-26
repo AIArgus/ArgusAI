@@ -1,152 +1,137 @@
 /**
- * @page api API Reference
+ * @defgroup api API Documentation
+ * @{
+ * @brief API documentation for the ArgusAI system
  *
- * @section api_overview Overview
- * The ArgusAI API provides RESTful endpoints for object detection and segmentation.
- * All endpoints are prefixed with `/api/`.
+ * The ArgusAI system provides a RESTful API for interacting with the object detection
+ * and segmentation capabilities. This documentation details all available endpoints,
+ * request/response formats, and usage examples.
  *
- * @section api_auth Authentication
- * Currently, the API does not require authentication. All endpoints are publicly accessible.
+ * @section api_base Base URL
+ * All API endpoints are relative to the base URL:
+ * ```
+ * http://localhost:8000
+ * ```
  *
  * @section api_endpoints Endpoints
  *
- * @subsection api_get_class_names GET /api/class-names
- * Returns the list of available object classes for detection.
+ * @subsection detection_endpoint Object Detection
+ * @code
+ * POST /detect
+ * Content-Type: multipart/form-data
+ * @endcode
  *
+ * Request parameters:
+ * - image: Image file (required)
+ * - model: Model name (optional, default: "yolov8n")
+ * - confidence: Detection confidence threshold (optional, default: 0.25)
+ *
+ * Response format:
  * @code{.json}
- * Response:
  * {
- *   "class_names": [
- *     "person", "bicycle", "car", "motorcycle", "airplane",
- *     // ... more classes ...
+ *   "success": true,
+ *   "detections": [
+ *     {
+ *       "class": "person",
+ *       "confidence": 0.95,
+ *       "bbox": [x1, y1, x2, y2]
+ *     }
  *   ]
  * }
  * @endcode
  *
- * @subsection api_detect POST /api/detect
- * Performs object detection or segmentation on an uploaded image.
- *
- * @code{.json}
- * Request:
+ * @subsection segmentation_endpoint Instance Segmentation
+ * @code
+ * POST /segment
  * Content-Type: multipart/form-data
- * {
- *   "file": <image_file>,
- *   "task": "detection" | "segmentation",
- *   "selected_classes": ["person", "car", ...],
- *   "threshold": 0.25,
- *   "show_labels": true,
- *   "show_confidence": true,
- *   "color": "#B9282B",
- *   "thickness": 2
- * }
- *
- * Response:
- * {
- *   "image": "<base64_encoded_image>",
- *   "format": "png",
- *   "message": "Detection completed successfully"
- * }
  * @endcode
  *
- * @section api_parameters Parameters
+ * Request parameters:
+ * - image: Image file (required)
+ * - model: Model name (optional, default: "yolov8n-seg")
+ * - confidence: Detection confidence threshold (optional, default: 0.25)
  *
- * @subsection api_file File
- * - Type: File upload
- * - Required: Yes
- * - Description: Image file to process
- * - Supported formats: JPG, PNG, JPEG
- *
- * @subsection api_task Task
- * - Type: String
- * - Required: Yes
- * - Values: "detection" | "segmentation"
- * - Description: Type of processing to perform
- *
- * @subsection api_selected_classes Selected Classes
- * - Type: Array of strings
- * - Required: No
- * - Description: List of object classes to detect
- * - Default: All classes
- *
- * @subsection api_threshold Threshold
- * - Type: Float
- * - Required: No
- * - Range: 0.0 to 1.0
- * - Default: 0.25
- * - Description: Confidence threshold for detections
- *
- * @subsection api_show_labels Show Labels
- * - Type: Boolean
- * - Required: No
- * - Default: true
- * - Description: Whether to show class labels on the output image
- *
- * @subsection api_show_confidence Show Confidence
- * - Type: Boolean
- * - Required: No
- * - Default: true
- * - Description: Whether to show confidence scores on the output image
- *
- * @subsection api_color Color
- * - Type: String
- * - Required: No
- * - Default: "#B9282B"
- * - Description: Color for bounding boxes and labels (HEX format)
- *
- * @subsection api_thickness Thickness
- * - Type: Integer
- * - Required: No
- * - Default: 2
- * - Description: Thickness of bounding boxes in pixels
- *
- * @section api_errors Error Responses
- * All endpoints may return the following error responses:
- *
+ * Response format:
  * @code{.json}
  * {
- *   "error": "Error message description"
+ *   "success": true,
+ *   "segments": [
+ *     {
+ *       "class": "person",
+ *       "confidence": 0.95,
+ *       "mask": [[x1, y1], [x2, y2], ...]
+ *     }
+ *   ]
  * }
  * @endcode
  *
- * Common error codes:
- * - 400: Bad Request - Invalid parameters
- * - 413: Payload Too Large - Image file too large
- * - 415: Unsupported Media Type - Invalid file format
- * - 500: Internal Server Error - Server-side processing error
- *
- * @section api_examples Examples
- *
- * @subsection api_example_curl cURL Example
- * @code{.bash}
- * curl -X POST "http://localhost:8000/api/detect" \
- *   -H "Content-Type: multipart/form-data" \
- *   -F "file=@image.jpg" \
- *   -F "task=detection" \
- *   -F "selected_classes=[\"person\",\"car\"]" \
- *   -F "threshold=0.25" \
- *   -F "show_labels=true" \
- *   -F "show_confidence=true" \
- *   -F "color=#B9282B" \
- *   -F "thickness=2"
+ * @subsection models_endpoint Available Models
+ * @code
+ * GET /models
  * @endcode
  *
- * @subsection api_example_python Python Example
- * @code{.python}
- * import requests
- *
- * url = "http://localhost:8000/api/detect"
- * files = {"file": open("image.jpg", "rb")}
- * data = {
- *     "task": "detection",
- *     "selected_classes": ["person", "car"],
- *     "threshold": 0.25,
- *     "show_labels": True,
- *     "show_confidence": True,
- *     "color": "#B9282B",
- *     "thickness": 2
+ * Response format:
+ * @code{.json}
+ * {
+ *   "models": [
+ *     {
+ *       "name": "yolov8n",
+ *       "type": "detection",
+ *       "size": "small"
+ *     },
+ *     {
+ *       "name": "yolov8n-seg",
+ *       "type": "segmentation",
+ *       "size": "small"
+ *     },
+ *     {
+ *       "name": "yolov8l",
+ *       "type": "detection",
+ *       "size": "large"
+ *     }
+ *   ]
  * }
- *
- * response = requests.post(url, files=files, data=data)
- * result = response.json()
  * @endcode
+ *
+ * @subsection status_endpoint System Status
+ * @code
+ * GET /status
+ * @endcode
+ *
+ * Response format:
+ * @code{.json}
+ * {
+ *   "status": "running",
+ *   "version": "2.0",
+ *   "models_loaded": ["yolov8n", "yolov8n-seg"],
+ *   "gpu_available": true
+ * }
+ * @endcode
+ *
+ * @section api_errors Error Handling
+ * All endpoints return appropriate HTTP status codes and error messages:
+ * - 200: Success
+ * - 400: Bad Request
+ * - 404: Not Found
+ * - 500: Internal Server Error
+ *
+ * Error response format:
+ * @code{.json}
+ * {
+ *   "error": "Error message",
+ *   "code": "ERROR_CODE"
+ * }
+ * @endcode
+ *
+ * @section api_authentication Authentication
+ * Currently, the API does not require authentication. Future versions may implement
+ * API key or token-based authentication.
+ *
+ * @section api_rate_limiting Rate Limiting
+ * The API implements rate limiting to prevent abuse:
+ * - 100 requests per minute per IP address
+ * - Rate limit headers are included in responses
+ *
+ * @see backend
+ * @}
  */ 

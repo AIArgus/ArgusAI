@@ -1,58 +1,45 @@
 /**
  * @defgroup backend Backend
  * @{
+ * @brief Backend components of the ArgusAI system
  *
- * @brief Backend implementation of the ArgusAI system
- *
- * The backend module provides the core functionality for object detection and segmentation,
- * implemented as a FastAPI-based REST API server.
+ * The backend of ArgusAI is responsible for:
+ * - Processing image and video data
+ * - Running AI models for object detection and segmentation
+ * - Providing RESTful API endpoints
+ * - Managing data storage and retrieval
  *
  * @section backend_components Components
  *
- * @subsection detection Detection Module
- * The detection module handles object detection using YOLOv8 models:
- * - Real-time object detection
- * - Configurable detection parameters
- * - Support for multiple object classes
+ * @subsection main Main Application
+ * The main application (`main.py`) serves as the entry point for the backend server.
+ * It handles:
+ * - API route definitions
+ * - Request processing
+ * - Model initialization and management
+ * - Response formatting
  *
- * @subsection segmentation Segmentation Module
- * The segmentation module provides instance segmentation capabilities:
- * - Instance segmentation using YOLOv8-seg
- * - Mask generation and visualization
- * - Class-specific segmentation
+ * @subsection models AI Models
+ * The system supports multiple YOLOv8 models:
+ * - YOLOv8n: Lightweight model for basic object detection
+ * - YOLOv8n-seg: Lightweight model for instance segmentation
+ * - YOLOv8l: Large model for high-accuracy detection
  *
  * @subsection api API Endpoints
- * The API module exposes REST endpoints for:
- * - Image upload and processing
- * - Detection and segmentation requests
- * - Configuration management
- * - Status monitoring
+ * The backend provides the following RESTful API endpoints:
+ * - POST /detect: Process images for object detection
+ * - POST /segment: Process images for instance segmentation
+ * - GET /models: List available AI models
+ * - GET /status: Check system status
  *
- * @section backend_usage Usage
- * The backend can be accessed through:
- * 1. REST API endpoints
- * 2. WebSocket connections for real-time updates
- * 3. Direct Python imports for integration
+ * @subsection requirements Dependencies
+ * Key Python dependencies include:
+ * - FastAPI: Web framework
+ * - Ultralytics: YOLOv8 implementation
+ * - OpenCV: Image processing
+ * - NumPy: Numerical computations
  *
- * @section backend_config Configuration
- * The backend can be configured through:
- * - Environment variables
- * - Configuration files
- * - API endpoints
- *
- * @section backend_models Models
- * The system uses the following YOLO models:
- * - yolov8n.pt: Lightweight detection model
- * - yolov8n-seg.pt: Lightweight segmentation model
- * - yolov8l.pt: Large detection model
- *
- * @section backend_dependencies Dependencies
- * Key dependencies include:
- * - FastAPI
- * - Ultralytics YOLO
- * - OpenCV
- * - NumPy
- * - PyTorch
- *
+ * @see main.py
+ * @see website2.py
  * @}
  */ 

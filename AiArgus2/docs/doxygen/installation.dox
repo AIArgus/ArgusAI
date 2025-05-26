@@ -1,99 +1,128 @@
 /**
- * @page installation Installation Guide
+ * @defgroup installation Installation Guide
+ * @{
+ * @brief Installation and setup instructions for the ArgusAI system
  *
- * @section install_prereq Prerequisites
- * Before installing ArgusAI, ensure you have the following prerequisites:
+ * This guide provides detailed instructions for installing and setting up the
+ * ArgusAI system on your local machine or server.
+ *
+ * @section requirements System Requirements
+ *
+ * @subsection hardware Hardware Requirements
+ * - CPU: 4+ cores recommended
+ * - RAM: 8GB minimum, 16GB recommended
+ * - GPU: NVIDIA GPU with CUDA support (optional but recommended)
+ * - Storage: 10GB free space minimum
+ *
+ * @subsection software Software Requirements
  * - Python 3.8 or higher
  * - Node.js 16 or higher
+ * - CUDA Toolkit 11.0+ (for GPU support)
  * - Git
- * - CUDA-capable GPU (recommended)
  *
- * @section install_backend Backend Installation
+ * @section installation Installation Steps
+ *
+ * @subsection backend_install Backend Installation
  * 1. Clone the repository:
- *    @code{.bash}
- *    git clone https://github.com/yourusername/ArgusAI.git
- *    cd ArgusAI
- *    @endcode
+ * @code{.bash}
+ * git clone https://github.com/yourusername/argusai.git
+ * cd argusai
+ * @endcode
  *
  * 2. Create and activate a virtual environment:
- *    @code{.bash}
- *    python -m venv venv
- *    source venv/bin/activate  # On Windows: venv\Scripts\activate
- *    @endcode
+ * @code{.bash}
+ * python -m venv venv
+ * source venv/bin/activate  # Linux/Mac
+ * venv\Scripts\activate     # Windows
+ * @endcode
  *
- * 3. Install backend dependencies:
- *    @code{.bash}
- *    cd backend
- *    pip install -r requirements.txt
- *    @endcode
+ * 3. Install Python dependencies:
+ * @code{.bash}
+ * pip install -r backend/requirements.txt
+ * @endcode
  *
- * 4. Download YOLO models:
- *    - yolov8n.pt
- *    - yolov8n-seg.pt
- *    - yolov8l.pt
- *
- * @section install_frontend Frontend Installation
+ * @subsection frontend_install Frontend Installation
  * 1. Navigate to the frontend directory:
- *    @code{.bash}
- *    cd ../frontend
- *    @endcode
+ * @code{.bash}
+ * cd frontend
+ * @endcode
  *
- * 2. Install frontend dependencies:
- *    @code{.bash}
- *    npm install
- *    @endcode
+ * 2. Install Node.js dependencies:
+ * @code{.bash}
+ * npm install
+ * @endcode
  *
- * @section install_config Configuration
- * 1. Backend configuration:
- *    - Copy `.env.example` to `.env`
- *    - Update configuration values as needed
+ * @section configuration Configuration
  *
- * 2. Frontend configuration:
- *    - Copy `.env.example` to `.env`
- *    - Update API endpoints and other settings
+ * @subsection backend_config Backend Configuration
+ * 1. Create a `.env` file in the backend directory:
+ * @code{.bash}
+ * cp .env.example .env
+ * @endcode
  *
- * @section install_run Running the Application
- * 1. Start the backend server:
- *    @code{.bash}
- *    cd backend
- *    uvicorn main:app --reload
- *    @endcode
+ * 2. Configure the following environment variables:
+ * - `MODEL_PATH`: Path to YOLO model files
+ * - `PORT`: Backend server port (default: 8000)
+ * - `GPU_ENABLED`: Enable GPU support (true/false)
  *
- * 2. Start the frontend development server:
- *    @code{.bash}
- *    cd frontend
- *    npm run dev
- *    @endcode
+ * @subsection frontend_config Frontend Configuration
+ * 1. Create a `.env` file in the frontend directory:
+ * @code{.bash}
+ * cp .env.example .env
+ * @endcode
  *
- * 3. Access the application:
- *    - Frontend: http://localhost:5173
- *    - Backend API: http://localhost:8000
- *    - API Documentation: http://localhost:8000/docs
+ * 2. Configure the following environment variables:
+ * - `VITE_API_URL`: Backend API URL
+ * - `VITE_APP_TITLE`: Application title
  *
- * @section install_trouble Troubleshooting
- * Common issues and solutions:
- * - CUDA errors: Ensure CUDA is properly installed and compatible with PyTorch
- * - Port conflicts: Change ports in configuration files
- * - Model loading errors: Verify model files are in the correct location
- * - Dependencies issues: Update pip and npm to latest versions
+ * @section running Running the Application
  *
- * @section install_update Updating
- * To update the application:
- * 1. Pull latest changes:
- *    @code{.bash}
- *    git pull origin main
- *    @endcode
+ * @subsection backend_run Running the Backend
+ * 1. Activate the virtual environment:
+ * @code{.bash}
+ * source venv/bin/activate  # Linux/Mac
+ * venv\Scripts\activate     # Windows
+ * @endcode
  *
- * 2. Update dependencies:
- *    @code{.bash}
- *    # Backend
- *    cd backend
- *    pip install -r requirements.txt
+ * 2. Start the backend server:
+ * @code{.bash}
+ * cd backend
+ * python main.py
+ * @endcode
  *
- *    # Frontend
- *    cd ../frontend
- *    npm install
- *    @endcode
+ * @subsection frontend_run Running the Frontend
+ * 1. Start the development server:
+ * @code{.bash}
+ * cd frontend
+ * npm run dev
+ * @endcode
  *
- * 3. Restart the application
+ * 2. Access the application at http://localhost:5173
+ *
+ * @section troubleshooting Troubleshooting
+ *
+ * @subsection common_issues Common Issues
+ * 1. CUDA/GPU Issues
+ *    - Ensure CUDA Toolkit is properly installed
+ *    - Verify GPU drivers are up to date
+ *    - Check CUDA version compatibility
+ *
+ * 2. Port Conflicts
+ *    - Change the port in configuration if default ports are in use
+ *    - Check for running processes on required ports
+ *
+ * 3. Model Loading Issues
+ *    - Verify model files are in the correct location
+ *    - Check model file permissions
+ *    - Ensure sufficient disk space
+ *
+ * @subsection getting_help Getting Help
+ * If you encounter issues not covered in this guide:
+ * 1. Check the GitHub Issues page
+ * 2. Review the documentation
+ * 3. Contact the development team
+ *
+ * @see backend
+ * @see frontend
+ * @}
  */ 
