@@ -1,0 +1,56 @@
+===============================================
+  JAK WYCZYŚCIĆ CACHE PRZEGLĄDARKI
+===============================================
+
+METODA 1 - Najszybsza (Hard Refresh):
+--------------------------------------
+1. Otwórz http://localhost:5173
+2. Naciśnij: Ctrl + F5
+   (przytrzymaj Ctrl i naciśnij F5)
+
+METODA 2 - DevTools (100% skuteczna):
+--------------------------------------
+1. Otwórz http://localhost:5173
+2. Naciśnij F12 (otwórz DevTools)
+3. Kliknij PRAWYM przyciskiem myszy na ikonę odświeżenia (⟳)
+4. Wybierz "Wyczyść pamięć podręczną i wymuś ponowne załadowanie"
+   lub "Empty Cache and Hard Reload"
+
+METODA 3 - Pełne czyszczenie:
+-------------------------------
+1. Naciśnij: Ctrl + Shift + Delete
+2. Wybierz "Obrazy i pliki w pamięci podręcznej"
+3. Zakres czasowy: "Cały czas"
+4. Kliknij "Wyczyść dane"
+5. Odśwież stronę (F5)
+
+METODA 4 - Tryb incognito (test):
+----------------------------------
+1. Naciśnij: Ctrl + Shift + N (Chrome/Edge)
+2. Otwórz http://localhost:5173
+3. Testuj tam
+
+===============================================
+  CO POWINIENEŚ ZOBACZYĆ PO WYCZYSZCZENIU
+===============================================
+
+✅ POPRAWNIE:
+- Tylko prostokątne bounding boxy
+- Boxy w kolorze wybranym w Settings
+- Brak kolorowych wypełnień/masek
+
+❌ NIEPOPRAWNIE (stary cache):
+- Kolorowe maski segmentacji
+- Cyan/turkusowe boxy zamiast wybranego koloru
+
+===============================================
+
+Backend DZIAŁA POPRAWNIE!
+Widzieliśmy to w logach terminala:
+- Model: yolov8n.pt (detection)
+- Kolor otrzymany: #B9282B
+- Konwersja BGR: (43, 40, 185)
+- 21 obiektów wykrytych
+
+Teraz tylko wyczyść cache frontendu!
+

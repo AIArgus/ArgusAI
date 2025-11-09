@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArgusAI - Quick Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0ea5e9;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0284c7;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        #resultImage {
+            max-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0ea5e9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .checkbox-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 ArgusAI - Quick Detection Test</h1>
+        
+        <div class="info-box">
+            <strong>⚠️ WAŻNE:</strong>
+            Ten test sprawdza czy backend działa poprawnie. Jeśli widzisz poprawne wyniki tutaj, ale nie w głównej aplikacji, 
+            <strong>wyczyść cache przeglądarki</strong> (Ctrl + F5) w głównej aplikacji!
+        </div>
+
+        <div class="test-section">
+            <h3>⚙️ Ustawienia</h3>
+            
+            <div class="color-picker">
+                <label for="colorPicker">Kolor Bounding Boxów:</label>
+                <input type="color" id="colorPicker" value="#B9282B">
+                <span id="colorValue">#B9282B</span>
+            </div>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="showLabels" checked> Pokaż etykiety (Show Labels)
+                </label>
+                <label>
+                    <input type="checkbox" id="showConfidence" checked> Pokaż pewność (Show Confidence)
+                </label>
+            </div>
+
+            <div>
+                <label for="threshold">Próg pewności (Threshold): <span id="thresholdValue">0.25</span></label>
+                <input type="range" id="threshold" min="0" max="1" step="0.01" value="0.25" style="width: 100%;">
+            </div>
+
+            <div>
+                <label for="thickness">Grubość linii (Thickness): <span id="thicknessValue">2</span></label>
+                <input type="range" id="thickness" min="1" max="5" step="1" value="2" style="width: 100%;">
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📤 Upload Zdjęcia</h3>
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="testDetection()" id="testBtn">🚀 Testuj Detection</button>
+            <button onclick="clearResults()">🗑️ Wyczyść</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Przetwarzanie obrazu...</p>
+        </div>
+
+        <div id="statusDiv"></div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Update color value display
+        document.getElementById('colorPicker').addEventListener('input', function(e) {
+            document.getElementById('colorValue').textContent = e.target.value.toUpperCase();
+        });
+
+        // Update threshold value display
+        document.getElementById('threshold').addEventListener('input', function(e) {
+            document.getElementById('thresholdValue').textContent = e.target.value;
+        });
+
+        // Update thickness value display
+        document.getElementById('thickness').addEventListener('input', function(e) {
+            document.getElementById('thicknessValue').textContent = e.target.value;
+        });
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function clearResults() {
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('statusDiv').innerHTML = '';
+            document.getElementById('imageInput').value = '';
+        }
+
+        async function testDetection() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showStatus('❌ Proszę wybrać zdjęcie!', 'error');
+                return;
+            }
+
+            // Get settings
+            const color = document.getElementById('colorPicker').value;
+            const threshold = document.getElementById('threshold').value;
+            const showLabels = document.getElementById('showLabels').checked;
+            const showConfidence = document.getElementById('showConfidence').checked;
+            const thickness = document.getElementById('thickness').value;
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('testBtn').disabled = true;
+            showStatus('⏳ Wysyłanie do backendu...', 'info');
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('task', 'detection');
+            formData.append('selected_classes', JSON.stringify(['person', 'car', 'dog', 'cat', 'bicycle', 'motorcycle', 'bus', 'truck']));
+            formData.append('threshold', threshold);
+            formData.append('show_labels', showLabels);
+            formData.append('show_confidence', showConfidence);
+            formData.append('color', color);
+            formData.append('thickness', thickness);
+
+            try {
+                console.log('Wysyłanie requestu z kolorem:', color);
+                
+                const response = await fetch('http://localhost:8000/api/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.image) {
+                    // Convert hex to image
+                    const imageBytes = data.image;
+                    const blob = hexToBlob(imageBytes);
+                    const imageUrl = URL.createObjectURL(blob);
+
+                    document.getElementById('result').innerHTML = `
+                        <h3>✅ Wynik Detection:</h3>
+                        <p><strong>Użyty kolor:</strong> ${color}</p>
+                        <p><strong>Próg:</strong> ${threshold}</p>
+                        <p><strong>Grubość:</strong> ${thickness}</p>
+                        <img id="resultImage" src="${imageUrl}" alt="Result">
+                    `;
+
+                    showStatus(`✅ Success! Sprawdź czy bounding boxy mają kolor ${color} i czy NIE MA masek segmentacji!`, 'success');
+                } else {
+                    throw new Error('Brak obrazu w odpowiedzi');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Błąd: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('testBtn').disabled = false;
+            }
+        }
+
+        function hexToBlob(hexString) {
+            const bytes = new Uint8Array(hexString.length / 2);
+            for (let i = 0; i < bytes.length; i++) {
+                bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
+            }
+            return new Blob([bytes], { type: 'image/png' });
+        }
+    </script>
+</body>
+</html>
+

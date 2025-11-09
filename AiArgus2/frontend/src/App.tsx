@@ -113,7 +113,7 @@ function App() {
   const [threshold, setThreshold] = useState(0.25);
   const [showLabels, setShowLabels] = useState(true);
   const [showConfidence, setShowConfidence] = useState(true);
-  const [color, setColor] = useState('#B9282B');
+  const [color, setColor] = useState('#B9282B'); // Default: Red - users can change in settings
   const [thickness, setThickness] = useState(2);
   const [result, setResult] = useState<{ image?: string; video?: string } | null>(null);
   const [classNames, setClassNames] = useState<string[]>([]);
@@ -393,7 +393,7 @@ function App() {
                     pt: 4
                   }}
                 >
-                  Created by: Igor Cwiertnia, Oskar Kubisztal, Jakub Laski, Tomasz Salwiczek
+                  Created by: Jakub Łaski
                 </Typography>
               </>
             )}

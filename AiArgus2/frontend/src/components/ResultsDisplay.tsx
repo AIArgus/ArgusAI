@@ -160,6 +160,7 @@ const IconWrapper = styled(Box)(({ theme }) => ({
 interface ResultsDisplayProps {
   result: {
     image?: string;
+    video?: string;
     format?: string;
     message?: string;
     error?: string;
@@ -239,8 +240,8 @@ function ResultsDisplay({ result, task = 'detection' }: ResultsDisplayProps) {
               </Typography>
               {result.image && (
                 <img
-                  src={`data:image/png;base64,${btoa(result.image.match(/.{1,2}/g)!.map(byte => String.fromCharCode(parseInt(byte, 16))).join(''))}`}
-                  alt="Processed result with segmentation masks"
+                  src={`data:image/png;base64,${result.image}`}
+                  alt={task === 'detection' ? 'Detection results with bounding boxes' : 'Segmentation results with masks'}
                   style={{ 
                     maxWidth: '100%', 
                     height: 'auto',
@@ -257,6 +258,22 @@ function ResultsDisplay({ result, task = 'detection' }: ResultsDisplayProps) {
                     console.error('Full response:', result);
                   }}
                 />
+              )}
+              {result.video && (
+                <video
+                  controls
+                  style={{ 
+                    maxWidth: '100%', 
+                    height: 'auto',
+                    borderRadius: theme.shape.borderRadius * 2,
+                    boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.1)}`,
+                    display: 'block',
+                    marginTop: theme.spacing(2)
+                  }}
+                >
+                  <source src={`data:video/mp4;base64,${result.video}`} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               )}
             </Box>
           </ExplanationBox>
