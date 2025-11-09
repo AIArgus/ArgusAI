@@ -69,7 +69,9 @@ def hex_to_bgr(value):
 def read_image_bytes(image_bytes, task):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    # Zawsze używamy BGR
+    # cv2.imdecode returns BGR format (OpenCV default)
+    print(f"DEBUG read_image_bytes: Image loaded in BGR format, shape: {img.shape}")
+    print(f"DEBUG read_image_bytes: Sample pixel at (100,100) BGR: {img[100,100]}")
     return img
 
 @app.get("/api/class-names")
@@ -106,15 +108,18 @@ async def detect_objects(
                 print(f"Successfully read image with shape: {image.shape}")
                 
                 if task == "detection":
-                    print("Loading YOLO model...")
+                    print("\n" + "="*60)
+                    print("TASK: OBJECT DETECTION (Bounding Boxes Only)")
+                    print("="*60)
+                    print("Loading YOLO detection model...")
                     try:
-                        model = YOLO('yolov8n.pt')
-                        print("Model loaded successfully")
+                        model = YOLO('yolov8n.pt')  # Detection model, NOT segmentation
+                        print("Detection model loaded successfully")
                     except Exception as e:
                         print(f"Error loading model: {str(e)}")
                         return {"error": f"Failed to load YOLO model: {str(e)}"}
                     
-                    print("Running detection...")
+                    print("Running object detection with bounding boxes...")
                     try:
                         result = model.predict(image, verbose=True)
                         print(f"Detection complete. Found {len(result[0].boxes.cls)} objects")
@@ -122,12 +127,17 @@ async def detect_objects(
                         print(f"Error during prediction: {str(e)}")
                         return {"error": f"Failed to run detection: {str(e)}"}
                     
-                    # Convert HEX to BGR properly
+                    # Convert HEX to BGR properly for OpenCV
+                    print(f"Received color HEX: {color}")
                     color_hex = color.lstrip('#')
                     if len(color_hex) == 3:
                         color_hex = ''.join([c*2 for c in color_hex])
-                    color_bgr = tuple(int(color_hex[i:i+2], 16) for i in (4, 2, 0))  # RGB to BGR
-                    print(f"Using color BGR: {color_bgr}")
+                    # Convert RGB to BGR for OpenCV
+                    r = int(color_hex[0:2], 16)
+                    g = int(color_hex[2:4], 16)
+                    b = int(color_hex[4:6], 16)
+                    color_bgr = (b, g, r)  # OpenCV uses BGR format
+                    print(f"Using color BGR: {color_bgr} (R:{r}, G:{g}, B:{b})")
                     
                     # Create a copy of the image for drawing
                     image_with_boxes = image.copy()
@@ -181,18 +191,31 @@ async def detect_objects(
 
                     # Convert image to bytes
                     print("\nConverting image to bytes...")
+                    print(f"DEBUG: Sample pixel BEFORE BGR→RGB at (100,100): {image_with_boxes[100,100]}")
                     try:
+                        # Important: OpenCV stores images in BGR format
+                        # We need to convert to RGB before encoding to PNG for web display
+                        # This ensures colors display correctly in browsers
                         output_image_rgb = cv2.cvtColor(image_with_boxes, cv2.COLOR_BGR2RGB)
-                        _, buffer = cv2.imencode('.png', output_image_rgb)
+                        print(f"DEBUG: Sample pixel AFTER BGR→RGB at (100,100): {output_image_rgb[100,100]}")
+                        
+                        # Encode as PNG with RGB color space
+                        success, buffer = cv2.imencode('.png', output_image_rgb)
+                        if not success:
+                            raise Exception("Failed to encode image as PNG")
+                        
                         image_bytes = buffer.tobytes()
                         print(f"Image converted to bytes, length: {len(image_bytes)}")
+                        print(f"Color space: BGR → RGB conversion applied ✓")
                     except Exception as e:
                         print(f"Error converting image: {str(e)}")
                         return {"error": f"Failed to convert image: {str(e)}"}
                     
                     print("=== Detection Process Completed ===")
+                    # Convert to base64 for easier frontend handling
+                    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
                     return {
-                        "image": image_bytes.hex(),
+                        "image": image_base64,
                         "format": "png",
                         "message": "Detection completed successfully"
                     }
@@ -283,8 +306,10 @@ async def detect_objects(
                             print(f"Error converting image: {str(e)}")
                             return {"error": f"Failed to convert image: {str(e)}"}
                         
+                        # Convert to base64 for easier frontend handling
+                        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
                         return {
-                            "image": image_bytes.hex(),
+                            "image": image_base64,
                             "format": "png",
                             "message": "Segmentation completed successfully"
                         }
@@ -306,8 +331,23 @@ async def detect_objects(
                 f.write(content)
             
             if task == "detection":
-                model = YOLO('yolov8l.pt')
+                print("\n" + "="*60)
+                print("TASK: OBJECT DETECTION (Video - Bounding Boxes Only)")
+                print("="*60)
+                model = YOLO('yolov8n.pt')  # Using detection model, NOT segmentation
                 result = model(temp_file)
+                
+                # Convert HEX to BGR properly for OpenCV
+                print(f"Received color HEX: {color}")
+                color_hex = color.lstrip('#')
+                if len(color_hex) == 3:
+                    color_hex = ''.join([c*2 for c in color_hex])
+                # Convert RGB to BGR for OpenCV
+                r = int(color_hex[0:2], 16)
+                g = int(color_hex[2:4], 16)
+                b = int(color_hex[4:6], 16)
+                color_bgr = (b, g, r)  # OpenCV uses BGR format
+                print(f"Using color BGR: {color_bgr} (R:{r}, G:{g}, B:{b})")
                 
                 # Process video frames
                 cap = cv2.VideoCapture(temp_file)
@@ -317,8 +357,6 @@ async def detect_objects(
                 output_file = "output.mp4"
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 out = cv2.VideoWriter(output_file, fourcc, 30, (width, height))
-                
-                color_bgr, color_rgb = hex_to_bgr(color)
                 
                 for idx_frame in range(len(result)):
                     ret, frame = cap.read()
@@ -363,12 +401,27 @@ async def detect_objects(
                 out.release()
                 
                 with open(output_file, 'rb') as f:
-                    return {"video": f.read().hex()}
+                    video_base64 = base64.b64encode(f.read()).decode('utf-8')
+                    return {"video": video_base64}
                 
             elif task == "segmentation":
+                print("\n" + "="*60)
+                print("TASK: SEGMENTATION (Video)")
+                print("="*60)
                 print("Loading YOLO segmentation model for video...")
                 model = YOLO("yolov8n-seg.pt")
                 result = model(temp_file)
+                
+                # Convert HEX to BGR for segmentation contours
+                print(f"Received color HEX: {color}")
+                color_hex = color.lstrip('#')
+                if len(color_hex) == 3:
+                    color_hex = ''.join([c*2 for c in color_hex])
+                r = int(color_hex[0:2], 16)
+                g = int(color_hex[2:4], 16)
+                b = int(color_hex[4:6], 16)
+                color_bgr = (b, g, r)  # OpenCV uses BGR format
+                print(f"Using color BGR for contours: {color_bgr}")
                 
                 cap = cv2.VideoCapture(temp_file)
                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -437,9 +490,14 @@ async def detect_objects(
                 out.release()
                 
                 with open(output_file, 'rb') as f:
-                    return {"video": f.read().hex()}
+                    video_base64 = base64.b64encode(f.read()).decode('utf-8')
+                    return {"video": video_base64}
         
         return {"error": "Unsupported file type or task"}
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
-        return {"error": str(e)} 
+        return {"error": str(e)}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000) 
