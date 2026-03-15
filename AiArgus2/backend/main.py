@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
 import numpy as np
@@ -24,6 +25,15 @@ def custom_torch_load(*args, **kwargs):
 # Replace torch.load with our custom version
 torch.load = custom_torch_load
 
+# ============================================================
+# PRE-LOAD MODELS AT STARTUP (Optimization #1)
+# Models are loaded once and reused for every request
+# ============================================================
+print("Loading YOLO models at startup...")
+detection_model = YOLO('yolov8n.pt')
+segmentation_model = YOLO('yolov8n-seg.pt')
+print("All models loaded successfully!")
+
 def reencode_video_h264(input_path: str, output_path: str):
     """Re-encode a video file to H.264 codec using ffmpeg for browser compatibility."""
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
@@ -39,6 +49,16 @@ def reencode_video_h264(input_path: str, output_path: str):
         output_path
     ]
     subprocess.run(cmd, check=True, capture_output=True)
+
+def parse_color_hex(color: str):
+    """Convert HEX color string to BGR tuple for OpenCV."""
+    color_hex = color.lstrip('#')
+    if len(color_hex) == 3:
+        color_hex = ''.join([c*2 for c in color_hex])
+    r = int(color_hex[0:2], 16)
+    g = int(color_hex[2:4], 16)
+    b = int(color_hex[4:6], 16)
+    return (b, g, r)  # BGR for OpenCV
 
 app = FastAPI()
 
@@ -75,21 +95,9 @@ names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'airplane',
 
 names_list = [name for name in names.values()]
 
-def hex_to_bgr(value):
-    value = value.lstrip('#')
-    lv = len(value)
-    rgb_value = tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-    r_value, g_value, b_value = rgb_value
-    bgr_value = (b_value, g_value, r_value)
-    rgb_value = (r_value, g_value, b_value)
-    return bgr_value, rgb_value
-
 def read_image_bytes(image_bytes, task):
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    # cv2.imdecode returns BGR format (OpenCV default)
-    print(f"DEBUG read_image_bytes: Image loaded in BGR format, shape: {img.shape}")
-    print(f"DEBUG read_image_bytes: Sample pixel at (100,100) BGR: {img[100,100]}")
     return img
 
 @app.get("/api/class-names")
@@ -109,7 +117,6 @@ async def detect_objects(
 ):
     try:
         print(f"\n=== Starting {task} process ===")
-        print(f"Task type: {task}")
         
         if selected_classes is None:
             selected_classes = names_list
@@ -120,55 +127,19 @@ async def detect_objects(
         file_type = file.content_type.split('/')[0]
         print(f"Processing {file_type} file: {file.filename}, size: {len(content)} bytes")
 
+        color_bgr = parse_color_hex(color)
+
         if file_type == "image":
             try:
                 image = read_image_bytes(content, task)
-                print(f"Successfully read image with shape: {image.shape}")
+                print(f"Image shape: {image.shape}")
                 
                 if task == "detection":
-                    print("\n" + "="*60)
-                    print("TASK: OBJECT DETECTION (Bounding Boxes Only)")
-                    print("="*60)
-                    print("Loading YOLO detection model...")
-                    try:
-                        model = YOLO('yolov8n.pt')  # Detection model, NOT segmentation
-                        print("Detection model loaded successfully")
-                    except Exception as e:
-                        print(f"Error loading model: {str(e)}")
-                        return {"error": f"Failed to load YOLO model: {str(e)}"}
+                    # Use pre-loaded detection model
+                    result = detection_model.predict(image, verbose=True)
                     
-                    print("Running object detection with bounding boxes...")
-                    try:
-                        result = model.predict(image, verbose=True)
-                        print(f"Detection complete. Found {len(result[0].boxes.cls)} objects")
-                    except Exception as e:
-                        print(f"Error during prediction: {str(e)}")
-                        return {"error": f"Failed to run detection: {str(e)}"}
-                    
-                    # Convert HEX to BGR properly for OpenCV
-                    print(f"Received color HEX: {color}")
-                    color_hex = color.lstrip('#')
-                    if len(color_hex) == 3:
-                        color_hex = ''.join([c*2 for c in color_hex])
-                    # Convert RGB to BGR for OpenCV
-                    r = int(color_hex[0:2], 16)
-                    g = int(color_hex[2:4], 16)
-                    b = int(color_hex[4:6], 16)
-                    color_bgr = (b, g, r)  # OpenCV uses BGR format
-                    print(f"Using color BGR: {color_bgr} (R:{r}, G:{g}, B:{b})")
-                    
-                    # Create a copy of the image for drawing
                     image_with_boxes = image.copy()
-                    print(f"Original image shape: {image.shape}")
-                    
-                    # Debug YOLO results
-                    print("\nYOLO Detection Results:")
-                    print(f"Number of boxes: {len(result[0].boxes.cls)}")
-                    
-                    # Use YOLO results directly
                     boxes = result[0].boxes
-                    print(f"Boxes type: {type(boxes)}")
-                    print(f"Boxes attributes: {dir(boxes)}")
                     
                     for i in range(len(boxes)):
                         box = boxes[i]
@@ -176,54 +147,28 @@ async def detect_objects(
                         class_id = int(box.cls)
                         class_name = names[class_id]
                         
-                        print(f"\nObject {i+1}:")
-                        print(f"Class: {class_name} (ID: {class_id})")
-                        print(f"Confidence: {confidence}")
-                        print(f"Box coordinates: {box.xyxy[0]}")
-                        
                         if class_name in selected_classes and confidence > threshold:
-                            # Get box coordinates in xyxy format
                             x1, y1, x2, y2 = map(int, box.xyxy[0])
-                            print(f"Drawing box at: ({x1}, {y1}) to ({x2}, {y2})")
-                            
-                            # Draw rectangle
                             cv2.rectangle(image_with_boxes, (x1, y1), (x2, y2), color_bgr, thickness)
                             
                             if show_confidence:
                                 cv2.putText(image_with_boxes, 
                                     f"{confidence:.2f}",
                                     (x2 - 30, y1 + 12), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 
-                                    0.5, 
-                                    color_bgr, 
-                                    1)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_bgr, 1)
 
                             if show_labels:
                                 cv2.putText(image_with_boxes, 
                                     class_name, 
                                     (x1 + 6, y1 + 12), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 
-                                    0.5, 
-                                    color_bgr, 
-                                    1)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_bgr, 1)
 
-                    # Convert image to bytes
-                    print("\nConverting image to bytes...")
-                    try:
-                        # cv2.imencode for PNG handles BGR→RGB conversion internally
-                        success, buffer = cv2.imencode('.png', image_with_boxes)
-                        if not success:
-                            raise Exception("Failed to encode image as PNG")
-                        
-                        image_bytes = buffer.tobytes()
-                        print(f"Image converted to bytes, length: {len(image_bytes)}")
-                    except Exception as e:
-                        print(f"Error converting image: {str(e)}")
-                        return {"error": f"Failed to convert image: {str(e)}"}
+                    # Encode image
+                    success, buffer = cv2.imencode('.png', image_with_boxes)
+                    if not success:
+                        raise Exception("Failed to encode image as PNG")
                     
-                    print("=== Detection Process Completed ===")
-                    # Convert to base64 for easier frontend handling
-                    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                    image_base64 = base64.b64encode(buffer.tobytes()).decode('utf-8')
                     return {
                         "image": image_base64,
                         "format": "png",
@@ -231,102 +176,58 @@ async def detect_objects(
                     }
                 
                 elif task == "segmentation":
-                    print("Starting segmentation process...")
-                    try:
-                        # Load the model
-                        print("Loading YOLO segmentation model...")
-                        model = YOLO("yolov8n-seg.pt")
-                        print("Model loaded successfully")
-                        
-                        # Run prediction
-                        print("Running prediction...")
-                        results = model.predict(image, verbose=True)
-                        print(f"Prediction complete. Number of results: {len(results)}")
-                        
-                        if not results or len(results) == 0:
-                            print("No results returned from model")
-                            return {"error": "No segmentation results found"}
-                        
-                        # Get the first result
-                        result = results[0]
-                        print(f"Result type: {type(result)}")
-                        print(f"Result attributes: {dir(result)}")
-                        
-                        # Check for masks
-                        if not hasattr(result, 'masks') or result.masks is None:
-                            print("No masks found in results")
-                            return {"error": "No masks found in segmentation results"}
-                        
-                        print(f"Number of masks: {len(result.masks)}")
-                        
-                        # Create output image
-                        output_image = image.copy()
-                        
-                        # Prepare overlay for alpha blending
-                        overlay = output_image.copy()
-                        np.random.seed(42)  # For reproducible colors per run
-                        class_color_map = {}
+                    # Use pre-loaded segmentation model
+                    results = segmentation_model.predict(image, verbose=True)
+                    
+                    if not results or len(results) == 0:
+                        return {"error": "No segmentation results found"}
+                    
+                    result = results[0]
+                    
+                    if not hasattr(result, 'masks') or result.masks is None:
+                        return {"error": "No masks found in segmentation results"}
+                    
+                    output_image = image.copy()
+                    overlay = output_image.copy()
+                    np.random.seed(42)
+                    class_color_map = {}
 
-                        for i, (box, mask) in enumerate(zip(result.boxes, result.masks)):
-                            try:
-                                confidence = float(box.conf)
-                                class_id = int(box.cls)
-                                class_name = names[class_id]
-                                if confidence < threshold or class_name not in selected_classes:
-                                    continue
-                                # Generate or reuse color for this class
-                                if class_id not in class_color_map:
-                                    class_color_map[class_id] = tuple(np.random.randint(0, 255, 3).tolist())
-                                color = class_color_map[class_id]
-                                # Prepare mask
-                                mask_data = mask.data[0].cpu().numpy()
-                                mask_resized = cv2.resize(mask_data, (image.shape[1], image.shape[0]))
-                                mask_bin = (mask_resized > 0.5).astype(np.uint8)
-                                # Create colored mask
-                                colored_mask = np.zeros_like(output_image, dtype=np.uint8)
-                                for c in range(3):
-                                    colored_mask[:,:,c] = color[c]
-                                # Alpha blend mask
-                                alpha = 0.5
-                                overlay[mask_bin == 1] = cv2.addWeighted(output_image, 1-alpha, colored_mask, alpha, 0)[mask_bin == 1]
-                                # Draw label on colored rectangle
-                                x1, y1, x2, y2 = map(int, box.xyxy[0])
-                                label = f"{class_name} {confidence:.2f}"
-                                (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-                                cv2.rectangle(overlay, (x1, y1 - th - 6), (x1 + tw, y1), color, -1)
-                                cv2.putText(overlay, label, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
-                            except Exception as e:
-                                print(f"Error processing detection {i}: {str(e)}")
-                                import traceback
-                                print(traceback.format_exc())
-                                continue
-                        
-                        output_image = overlay
-
-                        # Convert image to bytes
-                        print("\nConverting image to bytes...")
+                    for i, (box, mask) in enumerate(zip(result.boxes, result.masks)):
                         try:
-                            # cv2.imencode for PNG handles BGR→RGB conversion internally
-                            _, buffer = cv2.imencode('.png', output_image)
-                            image_bytes = buffer.tobytes()
-                            print(f"Image converted to bytes, length: {len(image_bytes)}")
+                            confidence = float(box.conf)
+                            class_id = int(box.cls)
+                            class_name = names[class_id]
+                            if confidence < threshold or class_name not in selected_classes:
+                                continue
+                            if class_id not in class_color_map:
+                                class_color_map[class_id] = tuple(np.random.randint(0, 255, 3).tolist())
+                            seg_color = class_color_map[class_id]
+                            mask_data = mask.data[0].cpu().numpy()
+                            mask_resized = cv2.resize(mask_data, (image.shape[1], image.shape[0]))
+                            mask_bin = (mask_resized > 0.5).astype(np.uint8)
+                            colored_mask = np.zeros_like(output_image, dtype=np.uint8)
+                            for c in range(3):
+                                colored_mask[:,:,c] = seg_color[c]
+                            alpha = 0.5
+                            overlay[mask_bin == 1] = cv2.addWeighted(output_image, 1-alpha, colored_mask, alpha, 0)[mask_bin == 1]
+                            x1, y1, x2, y2 = map(int, box.xyxy[0])
+                            label = f"{class_name} {confidence:.2f}"
+                            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                            cv2.rectangle(overlay, (x1, y1 - th - 6), (x1 + tw, y1), seg_color, -1)
+                            cv2.putText(overlay, label, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
                         except Exception as e:
-                            print(f"Error converting image: {str(e)}")
-                            return {"error": f"Failed to convert image: {str(e)}"}
-                        
-                        # Convert to base64 for easier frontend handling
-                        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-                        return {
-                            "image": image_base64,
-                            "format": "png",
-                            "message": "Segmentation completed successfully"
-                        }
-                        
-                    except Exception as e:
-                        print(f"Error during segmentation: {str(e)}")
-                        import traceback
-                        print(traceback.format_exc())
-                        return {"error": f"Error during segmentation: {str(e)}"}
+                            print(f"Error processing detection {i}: {str(e)}")
+                            continue
+                    
+                    output_image = overlay
+
+                    _, buffer = cv2.imencode('.png', output_image)
+                    image_base64 = base64.b64encode(buffer.tobytes()).decode('utf-8')
+                    return {
+                        "image": image_base64,
+                        "format": "png",
+                        "message": "Segmentation completed successfully"
+                    }
             
             except Exception as e:
                 print(f"Error processing image: {str(e)}")
@@ -338,126 +239,95 @@ async def detect_objects(
             with open(temp_file, "wb") as f:
                 f.write(content)
             
+            # Get video properties for the writer
+            cap = cv2.VideoCapture(temp_file)
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            
+            output_file = "output.mp4"
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(output_file, fourcc, fps, (width, height))
+            
+            # Przyspieszenie na CPU: inferencja co N klatek
+            frame_skip = 2
+            
             if task == "detection":
-                print("\n" + "="*60)
-                print("TASK: OBJECT DETECTION (Video - Bounding Boxes Only)")
-                print("="*60)
-                model = YOLO('yolov8n.pt')  # Using detection model, NOT segmentation
-                result = model(temp_file)
+                print(f"TASK: OBJECT DETECTION (Video - {total_frames} frames, frame_skip={frame_skip})")
                 
-                # Convert HEX to BGR properly for OpenCV
-                print(f"Received color HEX: {color}")
-                color_hex = color.lstrip('#')
-                if len(color_hex) == 3:
-                    color_hex = ''.join([c*2 for c in color_hex])
-                # Convert RGB to BGR for OpenCV
-                r = int(color_hex[0:2], 16)
-                g = int(color_hex[2:4], 16)
-                b = int(color_hex[4:6], 16)
-                color_bgr = (b, g, r)  # OpenCV uses BGR format
-                print(f"Using color BGR: {color_bgr} (R:{r}, G:{g}, B:{b})")
+                frame_idx = 0
+                last_boxes = None
                 
-                # Process video frames
-                cap = cv2.VideoCapture(temp_file)
-                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                
-                output_file = "output.mp4"
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                out = cv2.VideoWriter(output_file, fourcc, 30, (width, height))
-                
-                for idx_frame in range(len(result)):
+                while True:
                     ret, frame = cap.read()
                     if not ret:
                         break
+                        
+                    frame_idx += 1
+                    print(f"\rProcessing frame {frame_idx}/{total_frames}", end="", flush=True)
                     
-                    for i in range(len(result[idx_frame].boxes.cls)):
-                        if names[int(result[idx_frame].boxes.cls[i])] in selected_classes:
-                            confidence = result[idx_frame].boxes.conf[i]
-                            if confidence > threshold:
-                                start_point_x = int(result[idx_frame].boxes.xywh[i][0]) - int(result[idx_frame].boxes.xywh[i][2] / 2)
-                                start_point_y = int(result[idx_frame].boxes.xywh[i][1]) - int(result[idx_frame].boxes.xywh[i][3] / 2)
-                                start_point = (start_point_x, start_point_y)
-                                end_point_x = start_point_x + int(result[idx_frame].boxes.xywh[i][2])
-                                end_point_y = start_point_y + int(result[idx_frame].boxes.xywh[i][3])
-                                end_point = (end_point_x, end_point_y)
+                    # Run prediction only every 'frame_skip' frames
+                    if frame_idx % frame_skip == 1 or last_boxes is None:
+                        result = detection_model.predict(frame, verbose=False)[0]
+                        last_boxes = result.boxes
+                    
+                    if last_boxes is not None:
+                        for i in range(len(last_boxes.cls)):
+                            class_name = names[int(last_boxes.cls[i])]
+                            if class_name in selected_classes:
+                                confidence = float(last_boxes.conf[i])
+                                if confidence > threshold:
+                                    x1, y1, x2, y2 = map(int, last_boxes.xyxy[i])
+                                    
+                                    cv2.rectangle(frame, (x1, y1), (x2, y2), color_bgr, thickness)
 
-                                frame = cv2.rectangle(frame, start_point, end_point, color_bgr, thickness)
-
-                                if show_confidence:
-                                    frame = cv2.putText(frame, 
-                                        f"{confidence:.2f}%",
-                                        (end_point_x - 30, start_point_y + 12), 
-                                        cv2.FONT_HERSHEY_TRIPLEX, 
-                                        0.4, 
-                                        color_bgr, 
-                                        1)
-
-                                if show_labels:
-                                    object_name = names[int(result[idx_frame].boxes.cls[i])]
-                                    frame = cv2.putText(frame, 
-                                        object_name, 
-                                        (start_point_x + 6, start_point_y + 12), 
-                                        cv2.FONT_HERSHEY_TRIPLEX, 
-                                        0.4, 
-                                        color_bgr, 
-                                        1)
-                
+                                    # Build label text
+                                    label_parts = []
+                                    if show_labels:
+                                        label_parts.append(class_name)
+                                    if show_confidence:
+                                        label_parts.append(f"{confidence:.2f}")
+                                    
+                                    if label_parts:
+                                        label = " ".join(label_parts)
+                                        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+                                        # Draw background rectangle for readability
+                                        cv2.rectangle(frame, (x1, y1 - th - 8), (x1 + tw + 4, y1), color_bgr, -1)
+                                        cv2.putText(frame, label, (x1 + 2, y1 - 4),
+                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                    
                     out.write(frame)
-                
-                cap.release()
-                out.release()
-                
-                # Re-encode to H.264 for browser compatibility
-                h264_output = "output_h264.mp4"
-                reencode_video_h264(output_file, h264_output)
-                
-                with open(h264_output, 'rb') as f:
-                    video_base64 = base64.b64encode(f.read()).decode('utf-8')
-                    return {"video": video_base64}
+                print(f"\nDetection complete: {frame_idx} frames processed")
                 
             elif task == "segmentation":
-                print("\n" + "="*60)
-                print("TASK: SEGMENTATION (Video)")
-                print("="*60)
-                print("Loading YOLO segmentation model for video...")
-                model = YOLO("yolov8n-seg.pt")
-                result = model(temp_file)
+                print(f"TASK: SEGMENTATION (Video - {total_frames} frames, frame_skip={frame_skip})")
                 
-                # Convert HEX to BGR for segmentation contours
-                print(f"Received color HEX: {color}")
-                color_hex = color.lstrip('#')
-                if len(color_hex) == 3:
-                    color_hex = ''.join([c*2 for c in color_hex])
-                r = int(color_hex[0:2], 16)
-                g = int(color_hex[2:4], 16)
-                b = int(color_hex[4:6], 16)
-                color_bgr = (b, g, r)  # OpenCV uses BGR format
-                print(f"Using color BGR for contours: {color_bgr}")
-                
-                cap = cv2.VideoCapture(temp_file)
-                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                
-                output_file = "output.mp4"
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                out = cv2.VideoWriter(output_file, fourcc, 30, (width, height))
-                
-                # Generate consistent colors per class
                 np.random.seed(42)
                 class_color_map = {}
                 
-                for idx_frame in range(len(result)):
+                frame_idx = 0
+                last_masks = None
+                last_boxes = None
+                
+                while True:
                     ret, frame = cap.read()
                     if not ret:
                         break
-                    
-                    # Create overlay for alpha blending
+                        
+                    frame_idx += 1
+                    print(f"\rProcessing frame {frame_idx}/{total_frames}", end="", flush=True)
                     overlay = frame.copy()
                     
-                    # Pobieramy maski i klasy dla aktualnej klatki
-                    masks = result[idx_frame].masks
-                    boxes = result[idx_frame].boxes
+                    # Run prediction only every 'frame_skip' frames
+                    if frame_idx % frame_skip == 1 or last_boxes is None:
+                        # Zmniejszenie rozdzielczości do 480p też pomaga na CPU
+                        result = segmentation_model.predict(frame, imgsz=480, verbose=False)[0]
+                        last_boxes = result.boxes
+                        last_masks = result.masks
+                    
+                    masks = last_masks
+                    boxes = last_boxes
                     
                     if masks is None or boxes is None:
                         out.write(frame)
@@ -470,29 +340,24 @@ async def detect_objects(
                             class_name = names[class_id]
                             
                             if class_name in selected_classes and confidence > threshold:
-                                # Assign a unique color per class
                                 if class_id not in class_color_map:
                                     class_color_map[class_id] = tuple(np.random.randint(60, 255, 3).tolist())
                                 obj_color = class_color_map[class_id]
                                 
-                                # Get and resize mask
-                                mask = masks[i].data[0].cpu().numpy()
-                                mask = cv2.resize(mask, (width, height))
+                                mask_data = masks[i].data[0].cpu().numpy()
+                                mask = cv2.resize(mask_data, (width, height))
                                 mask_bin = (mask > 0.5).astype(np.uint8)
                                 
-                                # Apply colored mask overlay
                                 colored_region = np.zeros_like(frame, dtype=np.uint8)
                                 colored_region[:] = obj_color
                                 overlay[mask_bin == 1] = cv2.addWeighted(
                                     frame, 0.5, colored_region, 0.5, 0
                                 )[mask_bin == 1]
                                 
-                                # Draw thick contours
                                 mask_uint8 = (mask_bin * 255).astype(np.uint8)
                                 contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                                 cv2.drawContours(overlay, contours, -1, obj_color, 3)
                                 
-                                # Draw label with background rectangle
                                 if show_labels or show_confidence:
                                     x1, y1, x2, y2 = map(int, boxes[i].xyxy[0])
                                     label_parts = []
@@ -500,31 +365,46 @@ async def detect_objects(
                                         label_parts.append(class_name)
                                     if show_confidence:
                                         label_parts.append(f"{confidence:.2f}")
-                                    label = " ".join(label_parts)
                                     
-                                    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-                                    cv2.rectangle(overlay, (x1, y1 - th - 8), (x1 + tw + 4, y1), obj_color, -1)
-                                    cv2.putText(overlay, label, (x1 + 2, y1 - 4),
-                                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                                    if label_parts:
+                                        label = " ".join(label_parts)
+                                        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                                        cv2.rectangle(overlay, (x1, y1 - th - 8), (x1 + tw + 4, y1), obj_color, -1)
+                                        cv2.putText(overlay, label, (x1 + 2, y1 - 4),
+                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
                     
                     out.write(overlay)
-                
-                cap.release()
-                out.release()
-                
-                # Re-encode to H.264 for browser compatibility
-                h264_output = "output_h264.mp4"
-                reencode_video_h264(output_file, h264_output)
-                
-                with open(h264_output, 'rb') as f:
-                    video_base64 = base64.b64encode(f.read()).decode('utf-8')
-                    return {"video": video_base64}
+                print(f"\nSegmentation complete: {frame_idx} frames processed")
+            
+            cap.release()
+            out.release()
+            
+            # Re-encode to H.264 for browser compatibility
+            h264_output = "output_h264.mp4"
+            reencode_video_h264(output_file, h264_output)
+            
+            # ============================================================
+            # BINARY STREAMING RESPONSE (Optimization #3)
+            # Send video as binary stream instead of base64 in JSON
+            # ============================================================
+            def video_stream():
+                with open(h264_output, "rb") as f:
+                    while chunk := f.read(1024 * 1024):  # 1MB chunks
+                        yield chunk
+            
+            return StreamingResponse(
+                video_stream(),
+                media_type="video/mp4",
+                headers={"Content-Disposition": "inline; filename=output.mp4"}
+            )
         
         return {"error": "Unsupported file type or task"}
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
