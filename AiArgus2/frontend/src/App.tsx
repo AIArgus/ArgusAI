@@ -186,6 +186,18 @@ function App() {
         mode: 'cors'
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      
+      // Binary video response (StreamingResponse from backend)
+      if (contentType.includes('video/')) {
+        const blob = await response.blob();
+        const videoUrl = URL.createObjectURL(blob);
+        setResult({ video: videoUrl, message: 'Processing complete' });
+        setError(null);
+        return;
+      }
+      
+      // JSON response (image results)
       const data = await response.json();
       
       if (data.error) {

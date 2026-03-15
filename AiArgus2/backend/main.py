@@ -301,7 +301,10 @@ async def detect_objects(
                 print(f"\nDetection complete: {frame_idx} frames processed")
                 
             elif task == "segmentation":
-                print(f"TASK: SEGMENTATION (Video - {total_frames} frames, frame_skip={frame_skip})")
+                
+                # Zwiększony frame_skip dla segmentacji, bo jest znacznie cięższa
+                seg_frame_skip = 3
+                print(f"TASK: SEGMENTATION (Video - {total_frames} frames, frame_skip={seg_frame_skip})")
                 
                 np.random.seed(42)
                 class_color_map = {}
@@ -319,8 +322,8 @@ async def detect_objects(
                     print(f"\rProcessing frame {frame_idx}/{total_frames}", end="", flush=True)
                     overlay = frame.copy()
                     
-                    # Run prediction only every 'frame_skip' frames
-                    if frame_idx % frame_skip == 1 or last_boxes is None:
+                    # Run prediction only every 'seg_frame_skip' frames
+                    if frame_idx % seg_frame_skip == 1 or last_boxes is None:
                         # Zmniejszenie rozdzielczości do 480p też pomaga na CPU
                         result = segmentation_model.predict(frame, imgsz=480, verbose=False)[0]
                         last_boxes = result.boxes
@@ -329,9 +332,13 @@ async def detect_objects(
                     masks = last_masks
                     boxes = last_boxes
                     
-                    if masks is None or boxes is None:
+                    if masks is None or boxes is None or len(boxes) == 0:
                         out.write(frame)
                         continue
+                    
+                    # Create empty combined mask layer to avoid drawing multiple alphas
+                    colored_mask_layer = np.zeros_like(frame, dtype=np.uint8)
+                    combined_mask_bin = np.zeros(frame.shape[:2], dtype=bool)
                     
                     for i in range(len(masks)):
                         if i < len(boxes):
@@ -345,16 +352,15 @@ async def detect_objects(
                                 obj_color = class_color_map[class_id]
                                 
                                 mask_data = masks[i].data[0].cpu().numpy()
+                                mask_data = masks[i].data[0].cpu().numpy()
                                 mask = cv2.resize(mask_data, (width, height))
-                                mask_bin = (mask > 0.5).astype(np.uint8)
+                                mask_bin = (mask > 0.5)
                                 
-                                colored_region = np.zeros_like(frame, dtype=np.uint8)
-                                colored_region[:] = obj_color
-                                overlay[mask_bin == 1] = cv2.addWeighted(
-                                    frame, 0.5, colored_region, 0.5, 0
-                                )[mask_bin == 1]
+                                # Add to combined mask layer
+                                colored_mask_layer[mask_bin] = obj_color
+                                combined_mask_bin = np.logical_or(combined_mask_bin, mask_bin)
                                 
-                                mask_uint8 = (mask_bin * 255).astype(np.uint8)
+                                mask_uint8 = (mask_bin).astype(np.uint8) * 255
                                 contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                                 cv2.drawContours(overlay, contours, -1, obj_color, 3)
                                 
@@ -373,6 +379,12 @@ async def detect_objects(
                                         cv2.putText(overlay, label, (x1 + 2, y1 - 4),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
                     
+                    # Apply alpha blend once for all masks
+                    overlay[combined_mask_bin] = cv2.addWeighted(
+                        frame[combined_mask_bin], 0.5, 
+                        colored_mask_layer[combined_mask_bin], 0.5, 
+                        0
+                    )
                     out.write(overlay)
                 print(f"\nSegmentation complete: {frame_idx} frames processed")
             

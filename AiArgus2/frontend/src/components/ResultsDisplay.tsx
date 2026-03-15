@@ -270,8 +270,8 @@ function ResultsDisplay({ result, task = 'detection' }: ResultsDisplayProps) {
                     display: 'block',
                     marginTop: theme.spacing(2)
                   }}
+                  src={result.video.startsWith('blob:') ? result.video : `data:video/mp4;base64,${result.video}`}
                 >
-                  <source src={`data:video/mp4;base64,${result.video}`} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               )}
