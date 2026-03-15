@@ -209,22 +209,14 @@ async def detect_objects(
 
                     # Convert image to bytes
                     print("\nConverting image to bytes...")
-                    print(f"DEBUG: Sample pixel BEFORE BGR→RGB at (100,100): {image_with_boxes[100,100]}")
                     try:
-                        # Important: OpenCV stores images in BGR format
-                        # We need to convert to RGB before encoding to PNG for web display
-                        # This ensures colors display correctly in browsers
-                        output_image_rgb = cv2.cvtColor(image_with_boxes, cv2.COLOR_BGR2RGB)
-                        print(f"DEBUG: Sample pixel AFTER BGR→RGB at (100,100): {output_image_rgb[100,100]}")
-                        
-                        # Encode as PNG with RGB color space
-                        success, buffer = cv2.imencode('.png', output_image_rgb)
+                        # cv2.imencode for PNG handles BGR→RGB conversion internally
+                        success, buffer = cv2.imencode('.png', image_with_boxes)
                         if not success:
                             raise Exception("Failed to encode image as PNG")
                         
                         image_bytes = buffer.tobytes()
                         print(f"Image converted to bytes, length: {len(image_bytes)}")
-                        print(f"Color space: BGR → RGB conversion applied ✓")
                     except Exception as e:
                         print(f"Error converting image: {str(e)}")
                         return {"error": f"Failed to convert image: {str(e)}"}
@@ -314,10 +306,8 @@ async def detect_objects(
                         # Convert image to bytes
                         print("\nConverting image to bytes...")
                         try:
-                            # Convert BGR to RGB
-                            output_image_rgb = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
-                            # Encode image to bytes
-                            _, buffer = cv2.imencode('.png', output_image_rgb)
+                            # cv2.imencode for PNG handles BGR→RGB conversion internally
+                            _, buffer = cv2.imencode('.png', output_image)
                             image_bytes = buffer.tobytes()
                             print(f"Image converted to bytes, length: {len(image_bytes)}")
                         except Exception as e:
@@ -453,20 +443,25 @@ async def detect_objects(
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 out = cv2.VideoWriter(output_file, fourcc, 30, (width, height))
                 
+                # Generate consistent colors per class
+                np.random.seed(42)
+                class_color_map = {}
+                
                 for idx_frame in range(len(result)):
                     ret, frame = cap.read()
                     if not ret:
                         break
                     
-                    # Tworzymy kopię klatki do rysowania
-                    frame_with_masks = frame.copy()
+                    # Create overlay for alpha blending
+                    overlay = frame.copy()
                     
                     # Pobieramy maski i klasy dla aktualnej klatki
                     masks = result[idx_frame].masks
                     boxes = result[idx_frame].boxes
                     
-                    # Tworzymy pustą maskę dla wszystkich obiektów
-                    combined_mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+                    if masks is None or boxes is None:
+                        out.write(frame)
+                        continue
                     
                     for i in range(len(masks)):
                         if i < len(boxes):
@@ -475,40 +470,44 @@ async def detect_objects(
                             class_name = names[class_id]
                             
                             if class_name in selected_classes and confidence > threshold:
-                                # Pobieramy maskę i konwertujemy ją na numpy array
+                                # Assign a unique color per class
+                                if class_id not in class_color_map:
+                                    class_color_map[class_id] = tuple(np.random.randint(60, 255, 3).tolist())
+                                obj_color = class_color_map[class_id]
+                                
+                                # Get and resize mask
                                 mask = masks[i].data[0].cpu().numpy()
-                                # Resize mask to match frame dimensions
                                 mask = cv2.resize(mask, (width, height))
-                                mask = (mask * 255).astype(np.uint8)
+                                mask_bin = (mask > 0.5).astype(np.uint8)
                                 
-                                # Dodajemy maskę do combined_mask
-                                combined_mask = cv2.bitwise_or(combined_mask, mask)
+                                # Apply colored mask overlay
+                                colored_region = np.zeros_like(frame, dtype=np.uint8)
+                                colored_region[:] = obj_color
+                                overlay[mask_bin == 1] = cv2.addWeighted(
+                                    frame, 0.5, colored_region, 0.5, 0
+                                )[mask_bin == 1]
                                 
-                                # Rysujemy kontur maski
-                                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                                cv2.drawContours(frame_with_masks, contours, -1, color_bgr, thickness)
+                                # Draw thick contours
+                                mask_uint8 = (mask_bin * 255).astype(np.uint8)
+                                contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                                cv2.drawContours(overlay, contours, -1, obj_color, 3)
                                 
-                                if show_labels:
-                                    # Znajdujemy środek maski
-                                    M = cv2.moments(mask)
-                                    if M["m00"] != 0:
-                                        cX = int(M["m10"] / M["m00"])
-                                        cY = int(M["m01"] / M["m00"])
-                                        cv2.putText(frame_with_masks, 
-                                            class_name, 
-                                            (cX - 20, cY), 
-                                            cv2.FONT_HERSHEY_TRIPLEX, 
-                                            0.4, 
-                                            color_bgr, 
-                                            1)
+                                # Draw label with background rectangle
+                                if show_labels or show_confidence:
+                                    x1, y1, x2, y2 = map(int, boxes[i].xyxy[0])
+                                    label_parts = []
+                                    if show_labels:
+                                        label_parts.append(class_name)
+                                    if show_confidence:
+                                        label_parts.append(f"{confidence:.2f}")
+                                    label = " ".join(label_parts)
+                                    
+                                    (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                                    cv2.rectangle(overlay, (x1, y1 - th - 8), (x1 + tw + 4, y1), obj_color, -1)
+                                    cv2.putText(overlay, label, (x1 + 2, y1 - 4),
+                                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
                     
-                    # Nakładamy maskę na klatkę z przezroczystością
-                    alpha = 0.3
-                    overlay = frame_with_masks.copy()
-                    overlay[combined_mask > 0] = color_bgr
-                    cv2.addWeighted(overlay, alpha, frame_with_masks, 1 - alpha, 0, frame_with_masks)
-                    
-                    out.write(frame_with_masks)
+                    out.write(overlay)
                 
                 cap.release()
                 out.release()
