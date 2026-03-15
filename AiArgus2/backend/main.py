@@ -455,6 +455,8 @@ async def detect_objects(
                             if class_name in selected_classes and confidence > threshold:
                                 # Pobieramy maskę i konwertujemy ją na numpy array
                                 mask = masks[i].data[0].cpu().numpy()
+                                # Resize mask to match frame dimensions
+                                mask = cv2.resize(mask, (width, height))
                                 mask = (mask * 255).astype(np.uint8)
                                 
                                 # Dodajemy maskę do combined_mask
