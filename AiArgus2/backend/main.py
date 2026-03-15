@@ -4,6 +4,8 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 import os
+import subprocess
+import imageio_ffmpeg
 from typing import List
 import json
 import torch
@@ -21,6 +23,22 @@ def custom_torch_load(*args, **kwargs):
 
 # Replace torch.load with our custom version
 torch.load = custom_torch_load
+
+def reencode_video_h264(input_path: str, output_path: str):
+    """Re-encode a video file to H.264 codec using ffmpeg for browser compatibility."""
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    cmd = [
+        ffmpeg_exe,
+        '-y',              # overwrite output
+        '-i', input_path,  # input file
+        '-c:v', 'libx264', # H.264 codec
+        '-preset', 'fast',
+        '-crf', '23',
+        '-pix_fmt', 'yuv420p',  # max browser compatibility
+        '-movflags', '+faststart',  # enable streaming
+        output_path
+    ]
+    subprocess.run(cmd, check=True, capture_output=True)
 
 app = FastAPI()
 
@@ -400,7 +418,11 @@ async def detect_objects(
                 cap.release()
                 out.release()
                 
-                with open(output_file, 'rb') as f:
+                # Re-encode to H.264 for browser compatibility
+                h264_output = "output_h264.mp4"
+                reencode_video_h264(output_file, h264_output)
+                
+                with open(h264_output, 'rb') as f:
                     video_base64 = base64.b64encode(f.read()).decode('utf-8')
                     return {"video": video_base64}
                 
@@ -491,7 +513,11 @@ async def detect_objects(
                 cap.release()
                 out.release()
                 
-                with open(output_file, 'rb') as f:
+                # Re-encode to H.264 for browser compatibility
+                h264_output = "output_h264.mp4"
+                reencode_video_h264(output_file, h264_output)
+                
+                with open(h264_output, 'rb') as f:
                     video_base64 = base64.b64encode(f.read()).decode('utf-8')
                     return {"video": video_base64}
         
